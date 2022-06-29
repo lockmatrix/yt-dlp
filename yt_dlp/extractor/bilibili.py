@@ -31,6 +31,7 @@ from ..utils import (
     url_or_none,
     OnDemandPagedList
 )
+from ..postprocessor.ffmpeg import FFmpegPostProcessor
 
 
 class BiliBiliIE(InfoExtractor):
@@ -138,9 +139,6 @@ class BiliBiliIE(InfoExtractor):
             'skip_download': True,
         },
     }]
-
-    _APP_KEY = 'iVGUTjsxvpLeuDCf'
-    _BILIBILI_KEY = 'aHRmhWMLkdeMuILqORnYZocwMBpMEOdt'
 
     def _report_error(self, result):
         if 'message' in result:
@@ -255,59 +253,69 @@ class BiliBiliIE(InfoExtractor):
 
         else:
             # old video dont have dash in video_info
-            # these videos maybe flv fragments, the code below dont work properly
-            RENDITIONS = ('qn=80&quality=80&type=', 'quality=2&type=mp4')
-            for num, rendition in enumerate(RENDITIONS, start=1):
-                payload = 'appkey=%s&cid=%s&otype=json&%s' % (self._APP_KEY, cid, rendition)
-                sign = hashlib.md5((payload + self._BILIBILI_KEY).encode('utf-8')).hexdigest()
-                if not video_info:
-                    video_info = self._download_json(
-                        'http://interface.bilibili.com/v2/playurl?%s&sign=%s' % (payload, sign),
-                        video_id, note='Downloading video info page',
-                        headers=headers, fatal=num == len(RENDITIONS))
-                    if not video_info:
-                        continue
 
-                if not videos and 'durl' not in video_info:
-                    if num < len(RENDITIONS):
-                        continue
-                    self._report_error(video_info)
+            ffmpeg_tester = FFmpegPostProcessor()
 
-                for idx, videos in enumerate(video_info['durl']):
-                    formats.append({
-                        'url': videos.get('baseUrl') or videos.get('base_url') or videos.get('url'),
-                        'ext': mimetype2ext(videos.get('mimeType') or videos.get('mime_type')),
-                        'fps': int_or_none(videos.get('frameRate') or videos.get('frame_rate')),
-                        'width': int_or_none(videos.get('width')),
-                        'height': int_or_none(videos.get('height')),
-                        'vcodec': videos.get('codecs'),
-                        'acodec': 'none' if audios else None,
-                        'tbr': float_or_none(videos.get('bandwidth'), scale=1000),
-                        'filesize': int_or_none(videos.get('size')),
+            support_formats = traverse_obj(video_info, ('support_formats', ))
+            for f in support_formats:
+                playurl = "https://api.bilibili.com/x/player/playurl?bvid=%s&cid=%s&qn=%s" % (bv_id, cid, f['quality'])
+                video_info_ext = self._download_json(playurl, video_id, note='Downloading video info page',
+                                                     headers=headers)
+                if not video_info_ext:
+                    continue
+                video_info_ext = video_info_ext['data']
+
+                slices = []
+                for durl in video_info_ext['durl']:
+                    slices.append({
+                        'url': durl['url'],
+                        'filesize': int_or_none(durl['size'])
+                    })
+                ext = f['format']
+                if ext.startswith('flv'):
+                    # flv, flv360, flv720
+                    ext = 'flv'
+
+                filesize = 0
+                for s in slices:
+                    if s['filesize'] is None:
+                        filesize = None
+                    else:
+                        filesize += s['filesize']
+
+                fmt = {
+                    'url': slices[0]['url'],
+                    'ext': ext,
+                    'quality': f['quality'],
+                    'height': int_or_none(f['display_desc'].rstrip('P')),
+                    'vcodec': f.get('codecs'),
+                    'acodec': None,
+                    'filesize': filesize
+                }
+                if len(slices) > 1:
+                    fmt.update({
+                        'flv_segments': slices,
+                        'protocol': 'flv_frag'
                     })
 
-                for audio in audios:
-                    formats.append({
-                        'url': audio.get('baseUrl') or audio.get('base_url') or audio.get('url'),
-                        'ext': mimetype2ext(audio.get('mimeType') or audio.get('mime_type')),
-                        'fps': int_or_none(audio.get('frameRate') or audio.get('frame_rate')),
-                        'width': int_or_none(audio.get('width')),
-                        'height': int_or_none(audio.get('height')),
-                        'acodec': audio.get('codecs'),
-                        'vcodec': 'none',
-                        'tbr': float_or_none(audio.get('bandwidth'), scale=1000),
-                        'filesize': int_or_none(audio.get('size'))
-                    })
+                    ffmpeg_missing = []
+                    if not ffmpeg_tester.available: ffmpeg_missing.append('ffmpeg')
+                    if not ffmpeg_tester.probe_available: ffmpeg_missing.append('ffprobe')
+                    if len(ffmpeg_missing) > 0:
+                        self.report_warning('Cannot find %s, flv segments merging will be skipped.' % (' and '.join(ffmpeg_missing)),
+                                            video_id=video_id, only_once=True)
 
-                info.update({
-                    'id': video_id,
-                    'duration': float_or_none(video_info.get('timelength'), 1000),
-                    'formats': formats,
-                    'http_headers': {
-                        'Referer': url,
-                    },
-                })
-                break
+                formats.append(fmt)
+
+            info.update({
+                'id': video_id,
+                'duration': float_or_none(video_info.get('timelength'), 1000),
+                'formats': formats,
+                'http_headers': {
+                    'Referer': url,
+                },
+            })
+
 
         self._sort_formats(formats)
 
