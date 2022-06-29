@@ -243,7 +243,7 @@ class BiliBiliIE(InfoExtractor):
                 })
 
             info.update({
-                'id': video_id,
+                'id': str(video_id),
                 'duration': float_or_none(videos.get('length'), 1000),
                 'formats': formats,
                 'http_headers': {
@@ -308,7 +308,7 @@ class BiliBiliIE(InfoExtractor):
                 formats.append(fmt)
 
             info.update({
-                'id': video_id,
+                'id': str(video_id),
                 'duration': float_or_none(video_info.get('timelength'), 1000),
                 'formats': formats,
                 'http_headers': {
@@ -343,7 +343,7 @@ class BiliBiliIE(InfoExtractor):
 
         # TODO 'view_count' requires deobfuscating Javascript
         info.update({
-            'id': f'{video_id}_part{page_id}' if page_id is not None else video_id,
+            'id': f'{video_id}_part{page_id}' if page_id is not None else str(video_id),
             'cid': cid,
             'title': title,
             'description': description,
