@@ -53,6 +53,7 @@ from yt_dlp.utils import (
     fix_xml_ampersands,
     float_or_none,
     format_bytes,
+    get_compatible_ext,
     get_element_by_attribute,
     get_element_by_class,
     get_element_html_by_attribute,
@@ -139,13 +140,13 @@ class TestUtil(unittest.TestCase):
 
         self.assertEqual(sanitize_filename('123'), '123')
 
-        self.assertEqual('abc_de', sanitize_filename('abc/de'))
+        self.assertEqual('abc⧸de', sanitize_filename('abc/de'))
         self.assertFalse('/' in sanitize_filename('abc/de///'))
 
-        self.assertEqual('abc_de', sanitize_filename('abc/<>\\*|de'))
-        self.assertEqual('xxx', sanitize_filename('xxx/<>\\*|'))
-        self.assertEqual('yes no', sanitize_filename('yes? no'))
-        self.assertEqual('this - that', sanitize_filename('this: that'))
+        self.assertEqual('abc_de', sanitize_filename('abc/<>\\*|de', is_id=False))
+        self.assertEqual('xxx', sanitize_filename('xxx/<>\\*|', is_id=False))
+        self.assertEqual('yes no', sanitize_filename('yes? no', is_id=False))
+        self.assertEqual('this - that', sanitize_filename('this: that', is_id=False))
 
         self.assertEqual(sanitize_filename('AT&T'), 'AT&T')
         aumlaut = 'ä'
@@ -1842,6 +1843,31 @@ Line 1
 
         self.assertEqual(determine_file_encoding('# coding: utf-32-be'.encode('utf-32-be')), ('utf-32-be', 0))
         self.assertEqual(determine_file_encoding('# coding: utf-16-le'.encode('utf-16-le')), ('utf-16-le', 0))
+
+    def test_get_compatible_ext(self):
+        self.assertEqual(get_compatible_ext(
+            vcodecs=[None], acodecs=[None, None], vexts=['mp4'], aexts=['m4a', 'm4a']), 'mkv')
+        self.assertEqual(get_compatible_ext(
+            vcodecs=[None], acodecs=[None], vexts=['flv'], aexts=['flv']), 'flv')
+
+        self.assertEqual(get_compatible_ext(
+            vcodecs=[None], acodecs=[None], vexts=['mp4'], aexts=['m4a']), 'mp4')
+        self.assertEqual(get_compatible_ext(
+            vcodecs=[None], acodecs=[None], vexts=['mp4'], aexts=['webm']), 'mkv')
+        self.assertEqual(get_compatible_ext(
+            vcodecs=[None], acodecs=[None], vexts=['webm'], aexts=['m4a']), 'mkv')
+        self.assertEqual(get_compatible_ext(
+            vcodecs=[None], acodecs=[None], vexts=['webm'], aexts=['webm']), 'webm')
+
+        self.assertEqual(get_compatible_ext(
+            vcodecs=['h264'], acodecs=['mp4a'], vexts=['mov'], aexts=['m4a']), 'mp4')
+        self.assertEqual(get_compatible_ext(
+            vcodecs=['av01.0.12M.08'], acodecs=['opus'], vexts=['mp4'], aexts=['webm']), 'webm')
+
+        self.assertEqual(get_compatible_ext(
+            vcodecs=['vp9'], acodecs=['opus'], vexts=['webm'], aexts=['webm'], preferences=['flv', 'mp4']), 'mp4')
+        self.assertEqual(get_compatible_ext(
+            vcodecs=['av1'], acodecs=['mp4a'], vexts=['webm'], aexts=['m4a'], preferences=('webm', 'mkv')), 'mkv')
 
 
 if __name__ == '__main__':

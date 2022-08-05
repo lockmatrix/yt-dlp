@@ -858,10 +858,10 @@ You can also fork the project on github and run your fork's [build workflow](.gi
                                     downloadable
     -F, --list-formats              List available formats of each video.
                                     Simulate unless --no-simulate is used
-    --merge-output-format FORMAT    Container to use when merging formats (e.g.
-                                    bestvideo+bestaudio). Ignored if no merge is
-                                    required. (currently supported: avi, flv,
-                                    mkv, mov, mp4, webm)
+    --merge-output-format FORMAT    Containers that may be used when merging
+                                    formats, separated by "/" (Eg: "mp4/mkv").
+                                    Ignored if no merge is required. (currently
+                                    supported: avi, flv, mkv, mov, mp4, webm)
 
 ## Subtitle Options:
     --write-subs                    Write subtitle file
@@ -1774,7 +1774,7 @@ The following extractors use this feature:
 
 #### crunchyrollbeta
 * `format`: Which stream type(s) to extract. Default is `adaptive_hls` Eg: `crunchyrollbeta:format=vo_adaptive_hls`
-    * Potentially useful values include `adaptive_hls`, `adaptive_dash`, `vo_adaptive_hls`, `vo_adaptive_dash`, `download_hls`, `trailer_hls`, `trailer_dash`
+    * Potentially useful values include `adaptive_hls`, `adaptive_dash`, `vo_adaptive_hls`, `vo_adaptive_dash`, `download_hls`, `download_dash`, `multitrack_adaptive_hls_v2`
 * `hardsub`: Preference order for which hardsub versions to extract. Default is `None` (no hardsubs). Eg: `crunchyrollbeta:hardsub=en-US,None`
 
 #### vikichannel
