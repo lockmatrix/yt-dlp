@@ -5,8 +5,10 @@ import json
 import math
 import os
 import struct
+import threading
 import time
 import urllib.error
+from bisect import bisect
 
 from .common import FileDownloader
 from .http import HttpFD
@@ -19,6 +21,77 @@ from ..utils import (
     sanitized_Request,
     traverse_obj,
 )
+
+
+class Timer:
+    TIMER_FUNC = time.monotonic
+
+    def __init__(self):
+        self._last_ts = self.TIMER_FUNC()
+
+    def elapsed_seconds(self) -> float:
+        return self.TIMER_FUNC() - self._last_ts
+
+    def has_elapsed(self, seconds: float) -> bool:
+        assert seconds > 0.0
+        elapsed_seconds = self.elapsed_seconds()
+        if elapsed_seconds < seconds:
+            return False
+
+        self._last_ts += elapsed_seconds - elapsed_seconds % seconds
+        return True
+
+
+class SpeedometerMA:
+    TIMER_FUNC = time.monotonic
+    UPDATE_TIMESPAN_S = 1.0
+    AVERAGE_TIMESPAN_S = 5.0
+
+    def __init__(self, initial_bytes=0):
+        self.ts_data = [(self.TIMER_FUNC(), initial_bytes)]
+        self.timer = Timer()
+        self.last_value = None
+
+    def __call__(self, byte_counter):
+        time_now = self.TIMER_FUNC()
+
+        # only append data older than 50ms
+        if time_now - self.ts_data[-1][0] > 0.05:
+            self.ts_data.append((time_now, byte_counter))
+
+        # remove older entries
+        idx = max(0, bisect(self.ts_data, (time_now - self.AVERAGE_TIMESPAN_S, )) - 1)
+        self.ts_data[0:idx] = ()
+
+        diff_time = time_now - self.ts_data[0][0]
+        speed = (byte_counter - self.ts_data[0][1]) / diff_time if diff_time else None
+        if self.timer.has_elapsed(seconds=self.UPDATE_TIMESPAN_S):
+            self.last_value = speed
+
+        return self.last_value or speed
+
+
+class SmoothETA:
+    def __init__(self):
+        self.last_value = None
+
+    def __call__(self, value):
+        if value <= 0:
+            return 0
+
+        time_now = time.monotonic()
+        if self.last_value:
+            predicted = self.last_value - time_now
+            if predicted <= 0:
+                deviation = float('inf')
+            else:
+                deviation = max(predicted, value) / min(predicted, value)
+
+            if deviation < 1.25:
+                return predicted
+
+        self.last_value = time_now + value
+        return value
 
 
 class HttpQuietDownloader(HttpFD):
@@ -119,7 +192,6 @@ class FragmentFD(FileDownloader):
             'url': frag_url,
             'http_headers': headers or info_dict.get('http_headers'),
             'request_data': request_data,
-            'ctx_id': ctx.get('ctx_id'),
         }
         success, _ = ctx['dl'].download(fragment_filename, fragment_info_dict)
         if not success:
@@ -216,9 +288,18 @@ class FragmentFD(FileDownloader):
         })
 
     def _start_frag_download(self, ctx, info_dict):
+        def with_thread_lock(func):
+            """ this decorator makes a function thread-safe """
+            lock = threading.Lock()
+
+            def locked_func(*args, **kwargs):
+                with lock:
+                    return func(*args, **kwargs)
+            return locked_func
+
         resume_len = ctx['complete_frags_downloaded_bytes']
         total_frags = ctx['total_frags']
-        ctx_id = ctx.get('ctx_id')
+
         # This dict stores the download progress, it's updated by the progress
         # hook
         state = {
@@ -230,58 +311,60 @@ class FragmentFD(FileDownloader):
             'tmpfilename': ctx['tmpfilename'],
         }
 
-        start = time.time()
-        ctx.update({
-            'started': start,
-            'fragment_started': start,
-            # Amount of fragment's bytes downloaded by the time of the previous
-            # frag progress hook invocation
-            'prev_frag_downloaded_bytes': 0,
-        })
+        ctx['started'] = start = time.time()
+        speedometer = SpeedometerMA(initial_bytes=resume_len)
+        progress_timer = Timer()
+        smooth_eta = SmoothETA()
 
+        # contains the returned info from active threads
+        fragments_map = {}
+
+        @with_thread_lock
         def frag_progress_hook(s):
-            if s['status'] not in ('downloading', 'finished'):
+            if not (s['status'] in ('downloading', 'finished')
+                    and 'downloaded_bytes' in s and 'total_bytes' in s):
                 return
 
-            if not total_frags and ctx.get('fragment_count'):
-                state['fragment_count'] = ctx['fragment_count']
+            pending_fragments = 0
+            pending_total_bytes = 0
+            pending_downloaded_bytes = 0
+            fragments_map[threading.get_ident()] = s
 
-            if ctx_id is not None and s.get('ctx_id') != ctx_id:
-                return
+            for thread_id, info in tuple(fragments_map.items()):
+                if info['status'] == 'finished':
+                    ctx['complete_frags_downloaded_bytes'] += info['downloaded_bytes']
+                    state['fragment_index'] += 1
+                    del fragments_map[thread_id]
+                elif info['status'] == 'downloading':
+                    pending_fragments += 1
+                    pending_downloaded_bytes += info['downloaded_bytes'] or 0
+                    pending_total_bytes += info['total_bytes'] or 0
+
+            state['downloaded_bytes'] = (
+                ctx['complete_frags_downloaded_bytes'] + pending_downloaded_bytes)
+
+            if total_frags:
+                state['total_bytes_estimate'] = (
+                    (ctx['complete_frags_downloaded_bytes'] + pending_total_bytes)
+                    / (state['fragment_index'] + pending_fragments) * total_frags
+                )
+            else:
+                state['total_bytes_estimate'] = None
+                state['fragment_count'] = ctx.get('fragment_count')
+
+            if state['fragment_index'] == total_frags:
+                state['status'] = 'finished'
 
             state['max_progress'] = ctx.get('max_progress')
             state['progress_idx'] = ctx.get('progress_idx')
+            state['speed'] = speedometer(state['downloaded_bytes'])
+            state['elapsed'] = time.time() - start
 
-            time_now = time.time()
-            state['elapsed'] = time_now - start
-            frag_total_bytes = s.get('total_bytes') or 0
-            s['fragment_info_dict'] = s.pop('info_dict', {})
-            if not ctx['live']:
-                estimated_size = (
-                    (ctx['complete_frags_downloaded_bytes'] + frag_total_bytes)
-                    / (state['fragment_index'] + 1) * total_frags)
-                state['total_bytes_estimate'] = estimated_size
-
-            if s['status'] == 'finished':
-                state['fragment_index'] += 1
-                ctx['fragment_index'] = state['fragment_index']
-                state['downloaded_bytes'] += frag_total_bytes - ctx['prev_frag_downloaded_bytes']
-                ctx['complete_frags_downloaded_bytes'] = state['downloaded_bytes']
-                ctx['speed'] = state['speed'] = self.calc_speed(
-                    ctx['fragment_started'], time_now, frag_total_bytes)
-                ctx['fragment_started'] = time.time()
-                ctx['prev_frag_downloaded_bytes'] = 0
-            else:
-                frag_downloaded_bytes = s['downloaded_bytes']
-                state['downloaded_bytes'] += frag_downloaded_bytes - ctx['prev_frag_downloaded_bytes']
-                if not ctx['live']:
-                    state['eta'] = self.calc_eta(
-                        start, time_now, estimated_size - resume_len,
-                        state['downloaded_bytes'] - resume_len)
-                ctx['speed'] = state['speed'] = self.calc_speed(
-                    ctx['fragment_started'], time_now, frag_downloaded_bytes)
-                ctx['prev_frag_downloaded_bytes'] = frag_downloaded_bytes
-            self._hook_progress(state, info_dict)
+            if progress_timer.has_elapsed(seconds=0.1) or state['status'] == 'finished':
+                if state.get('speed') and state.get('total_bytes_estimate'):
+                    state['eta'] = smooth_eta(
+                        (state['total_bytes_estimate'] - state['downloaded_bytes']) / state['speed'])
+                self._hook_progress(state, info_dict)
 
         ctx['dl'].add_progress_hook(frag_progress_hook)
 
@@ -312,7 +395,6 @@ class FragmentFD(FileDownloader):
             'filename': ctx['filename'],
             'status': 'finished',
             'elapsed': elapsed,
-            'ctx_id': ctx.get('ctx_id'),
             'max_progress': ctx.get('max_progress'),
             'progress_idx': ctx.get('progress_idx'),
         }, info_dict)
@@ -493,7 +575,6 @@ class FragmentFD(FileDownloader):
                 download_fragment(fragment, ctx_copy)
                 return fragment, fragment['frag_index'], ctx_copy.get('fragment_filename_sanitized')
 
-            self.report_warning('The download speed shown is only of one thread. This is a known issue and patches are welcome')
             with tpe or concurrent.futures.ThreadPoolExecutor(max_workers) as pool:
                 try:
                     for fragment, frag_index, frag_filename in pool.map(_download_fragment, fragments):
