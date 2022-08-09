@@ -162,13 +162,16 @@ from .bigo import BigoIE
 from .bild import BildIE
 from .bilibili import (
     BiliBiliIE,
+    BilibiliBangumiIE,
+    BilibiliBangumiMediaIE,
     BiliBiliSearchIE,
     BilibiliCategoryIE,
-    BiliBiliBangumiIE,
     BilibiliAudioIE,
     BilibiliAudioAlbumIE,
     BiliBiliPlayerIE,
-    BilibiliChannelIE,
+    BilibiliSpaceVideoIE,
+    BilibiliSpaceAudioIE,
+    BilibiliSpacePlaylistIE,
     BiliIntlIE,
     BiliIntlSeriesIE,
     BiliLiveIE,
