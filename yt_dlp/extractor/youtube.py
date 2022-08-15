@@ -2653,7 +2653,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if self.get_param('youtube_print_sig_code'):
             self.to_screen(f'Extracted nsig function from {player_id}:\n{func_code[1]}\n')
 
-        return lambda s: jsi.extract_function_from_code(*func_code)([s])
+        func = jsi.extract_function_from_code(*func_code)
+        return lambda s: func([s])
 
     def _extract_signature_timestamp(self, video_id, player_url, ytcfg=None, fatal=False):
         """
@@ -3246,9 +3247,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 else -10 if 'descriptive' in (audio_track.get('displayName') or '').lower() and -10
                 else -1)
             # Some formats may have much smaller duration than others (possibly damaged during encoding)
-            # Eg: 2-nOtRESiUc Ref: https://github.com/yt-dlp/yt-dlp/issues/2823
+            # E.g. 2-nOtRESiUc Ref: https://github.com/yt-dlp/yt-dlp/issues/2823
             # Make sure to avoid false positives with small duration differences.
-            # Eg: __2ABJjxzNo, ySuUZEjARPY
+            # E.g. __2ABJjxzNo, ySuUZEjARPY
             is_damaged = try_get(fmt, lambda x: float(x['approxDurationMs']) / duration < 500)
             if is_damaged:
                 self.report_warning(
@@ -3588,7 +3589,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         formats.extend(self._extract_storyboard(player_responses, duration))
 
         # source_preference is lower for throttled/potentially damaged formats
-        self._sort_formats(formats, ('quality', 'res', 'fps', 'hdr:12', 'channels', 'source', 'codec:vp9.2', 'lang', 'proto'))
+        self._sort_formats(formats, (
+            'quality', 'res', 'fps', 'hdr:12', 'source', 'vcodec:vp9.2', 'channels', 'acodec', 'lang', 'proto'))
 
         info = {
             'id': video_id,
@@ -5832,7 +5834,7 @@ class YoutubeSearchURLIE(YoutubeTabBaseInfoExtractor):
 
 
 class YoutubeMusicSearchURLIE(YoutubeTabBaseInfoExtractor):
-    IE_DESC = 'YouTube music search URLs with selectable sections (Eg: #songs)'
+    IE_DESC = 'YouTube music search URLs with selectable sections, e.g. #songs'
     IE_NAME = 'youtube:music:search_url'
     _VALID_URL = r'https?://music\.youtube\.com/search\?([^#]+&)?(?:search_query|q)=(?:[^&]+)(?:[&#]|$)'
     _TESTS = [{
