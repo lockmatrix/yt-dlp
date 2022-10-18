@@ -95,6 +95,7 @@ class SbdmIE(InfoExtractor):
             engine.extract_network()
             for url in engine.response_updated_key_list:
                 if '.m3u8' in url:
+                    print(f'found .m3u8: {url}')
                     video_url = url
 
             self.to_screen('Check chrome media-internals info ...')
