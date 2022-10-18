@@ -1,8 +1,9 @@
+import time
 import urllib
 
 from .common import InfoExtractor
-from .openload import PhantomJSwrapper
-from ..utils import unescapeHTML, parse_qs
+from ..utils import ExtractorError
+
 
 # http://www.kudm.net/ has two sites:
 # * https://www.sbdm.net/
@@ -23,35 +24,99 @@ class SbdmIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
+        video_id = self._match_id(url)
+
         mobj = self._match_valid_url(url)
-        video_id = mobj.group('id')
         season_url = mobj.group('season')
+        season_url_path = url[len('https://www.sbdm.net'):]
 
-        season_url_parsed = urllib.parse.urlparse(season_url)
-        season_url_path = url[len(season_url_parsed.scheme + '://' + season_url_parsed.netloc):]
+        chrome_wait_timeout = self.get_param('selenium_browner_timeout', 20)
+        headless = self.get_param('selenium_browner_headless', True)
+        proxy = self.get_param('proxy', None)
 
-        phantom = PhantomJSwrapper(self)
+        from ..selenium_container import SeleniumContainer
+        from selenium.webdriver.support import expected_conditions as EC
+        from selenium.webdriver.common.by import By
 
-        season_page, _ = phantom.get(season_url, video_id=video_id, note='Downloading season page')
-        season_title = self._search_regex(r'<h1>(?P<season_title>[^<]+)</h1>', season_page, 'title')
+        self.to_screen(f'start chrome to query video page...')
+        with SeleniumContainer(
+            headless=headless,
+            close_log_callback=lambda: self.to_screen('Quit chrome and cleanup temp profile...')
+        ) as engine:
+            engine.start(proxy=proxy)
 
-        title_pattern = r'title="(?P<title>[^"]+)"\s+href="' + season_url_path.replace('?', r'\?')
-        title = self._search_regex(title_pattern, season_page, 'title')
+            self.to_screen('query season page...')
+            engine.load(season_url)
 
-        video_page, _ = phantom.get(url, video_id=video_id, note='Downloading video page')
-        iframe_url = unescapeHTML(self._search_regex(r'<iframe[^<]+?src="(?P<url>[^"]+)"', video_page, 'iframe url'))
-        m3u8_url = parse_qs(iframe_url)['a'][0]
+            season_name = engine.find_element(By.TAG_NAME, 'h1').get_attribute('innerText')
 
-        return {
-            'id': video_id,
-            'season': season_title,
-            'title': f'{season_title} {title}',
-            'formats': [{
-                'url': m3u8_url,
-                'protocol': 'm3u8_fake_header',
-                'ext': 'mp4',
-            }]
-        }
+            season_page = engine.driver.page_source
+
+            title_pattern = r'title="(?P<title>[^"]+)"\s+href="' + season_url_path.replace('?', r'\?')
+            title = self._search_regex(title_pattern, season_page, 'title')
+            title = f'{season_name} {title}'
+
+            self.to_screen('query video page...')
+            engine.load(url)
+
+            iframe_e = engine.wait(chrome_wait_timeout).until(
+                EC.presence_of_element_located((By.ID, 'cciframe'))
+            )
+
+            engine.driver.switch_to.frame(iframe_e)
+
+            iframe_e = engine.wait(chrome_wait_timeout).until(
+                EC.presence_of_element_located((By.ID, 'icc'))
+            )
+
+            engine.driver.switch_to.frame(iframe_e)
+
+            video_e = engine.wait(chrome_wait_timeout).until(
+                EC.presence_of_element_located((By.TAG_NAME, 'video'))
+            )
+
+            self.to_screen('play video to detect video metadata ...')
+            engine.execute_script("document.getElementsByTagName('video')[0].volume = 0")
+            engine.execute_script("document.getElementsByTagName('video')[0].muted = true")
+            engine.execute_script("document.getElementsByTagName('video')[0].play()")
+
+            videoHeight, videoWidth = None, None
+            for _ in range(chrome_wait_timeout):
+                videoHeight = engine.execute_script("return document.getElementsByTagName('video')[0].videoHeight")
+                videoWidth = engine.execute_script("return document.getElementsByTagName('video')[0].videoWidth")
+
+                if videoHeight == 0:
+                    videoHeight, videoWidth = None, None
+                    time.sleep(1)
+                else:
+                    break
+
+            video_url = None
+            engine.extract_network()
+            for url in engine.response_updated_key_list:
+                if '.m3u8' in url:
+                    print(f'found .m3u8: {url}')
+                    if url.startswith('https://yun.ssdm.cc/'):
+                        print(f'found target .m3u8: {url}')
+                        video_url = url
+
+            self.to_screen('Check chrome media-internals info ...')
+            fmt_info = engine.parse_video_info()
+
+            if '.m3u8' in video_url:
+                return {
+                    'id': video_id,
+                    'title': title,
+                    '_type': 'video',
+                    'formats': [{
+                        'url': video_url,
+                        'protocol': 'm3u8_fake_header',
+                        'ext': 'mp4',
+                        **fmt_info
+                        }]
+                }
+
+        raise ExtractorError(f'unknown format {url}')
 
 
 class GqdmIE(InfoExtractor):
