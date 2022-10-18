@@ -28,12 +28,16 @@ class SeleniumContainer:
         self.closed_request_id_set = set()
         self.response_updated_key_list = []
 
-    def start(self):
+    def start(self, proxy=None):
         chrome_options = Options()
         chrome_options.add_argument('--log-level=3')
         chrome_options.add_argument("--disable-blink-features")
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
         # print(f'chrome path: {chrome_options.binary_location}')
+        if proxy is not None:
+            print(f'chrome proxy: {proxy}')
+            chrome_options.add_argument(f'--proxy-server={proxy}')
+
 
         if self.headless:
             chrome_options.add_argument('--headless')

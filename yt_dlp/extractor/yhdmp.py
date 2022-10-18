@@ -33,6 +33,7 @@ class YhdmpIE(InfoExtractor):
 
         chrome_wait_timeout = self.get_param('selenium_browner_timeout', 20)
         headless = self.get_param('selenium_browner_headless', True)
+        proxy = self.get_param('proxy', None)
 
         from ..selenium_container import SeleniumContainer
         from selenium.webdriver.support import expected_conditions as EC
@@ -43,7 +44,7 @@ class YhdmpIE(InfoExtractor):
             headless=headless,
             close_log_callback=lambda: self.to_screen('Quit chrome and cleanup temp profile...')
         ) as engine:
-            engine.start()
+            engine.start(proxy=proxy)
 
             engine.load(url)
 
