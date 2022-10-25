@@ -2,6 +2,7 @@ import base64
 import functools
 import hashlib
 import itertools
+import json
 import math
 import re
 import time
@@ -66,7 +67,7 @@ class BilibiliBaseIE(InfoExtractor):
         formats.extend({
             'url': traverse_obj(video, 'baseUrl', 'base_url', 'url'),
             'ext': mimetype2ext(traverse_obj(video, 'mimeType', 'mime_type')),
-            'fps': float_or_none(traverse_obj(video, 'frameRate', 'frame_rate')),
+            'fps': self.fix_fps(traverse_obj(video, 'frameRate', 'frame_rate')),
             'width': int_or_none(video.get('width')),
             'height': int_or_none(video.get('height')),
             'vcodec': video.get('codecs'),
@@ -156,6 +157,122 @@ class BilibiliBaseIE(InfoExtractor):
                 'result', 'main_section', 'episodes',
                 lambda _, v: url_or_none(v['share_url']) and v['id'])):
             yield self.url_result(entry['share_url'], BiliBiliBangumiIE, f'ep{entry["id"]}')
+
+    def fix_fps(self, s):
+        if s is None:
+            return None
+        try:
+            v = float(s)
+        except Exception:
+            return None
+
+        if v <= 0:
+            return None
+
+        all_fps = [8, 16, 24, 25, 30, 48, 50, 60]
+        all_fps.sort(key=lambda f: abs(1 - v / f))
+        if abs(1 - v / all_fps[0]) < max(3.0 / 60, 2.0 / 24):
+            return all_fps[0]
+
+        return v
+
+    def parse_old_flv_formats(self, video_id, bv_id, cid, support_formats, id_str, title, http_headers):
+        format_names = {
+            r['quality']: traverse_obj(r, 'new_description', 'display_desc')
+            for r in support_formats if 'quality' in r
+        }
+
+        formats = []
+        for f in support_formats:
+            quality = f["quality"]
+            playurl = f'https://api.bilibili.com/x/player/playurl?bvid={bv_id}&cid={cid}&qn={quality}&fnver=0&fnval=4048'
+
+            video_info_ext = self._download_json(playurl, video_id, fatal=False,
+                                                 note=f'Fetching url for quality {quality} format')
+            if not video_info_ext:
+                continue
+            video_info_ext = video_info_ext['data']
+
+            if video_info_ext.get('quality') != quality:
+                self.to_screen(f'fetch quality {quality} failed, got {video_info_ext.get("quality")}.')
+                continue
+
+            slices = []
+            for durl in video_info_ext['durl']:
+                slices.append({
+                    'url': durl['url'],
+                    'filesize': int_or_none(durl['size'])
+                })
+            ext = f['format']
+            if ext.startswith('flv'):
+                # flv, flv360, flv720
+                ext = 'flv'
+
+            filesize = 0
+            for s in slices:
+                if s['filesize'] is None:
+                    filesize = None
+                else:
+                    filesize += s['filesize']
+
+            if len(slices) == 0:
+                continue
+
+            fmt = {
+                'url': slices[0]['url'],
+                'ext': ext,
+                'quality': f['quality'],
+                'format_note': format_names.get(quality),
+                'height': int_or_none(f['display_desc'].rstrip('P')),
+                'vcodec': f.get('codecs'),
+                'entries': slices,
+                'filesize': filesize
+            }
+            formats.append(fmt)
+
+        self._sort_formats(formats)
+
+        missing_formats = format_names.keys() - set(traverse_obj(formats, (..., 'quality')))
+        if missing_formats:
+            self.to_screen(f'Format(s) {", ".join(format_names[i] for i in missing_formats)} are missing; '
+                           'you have to login or become premium member to download them')
+
+        # if all formats have same num of slices, rewrite it as multi_video
+        return self.rewrite_as_multi_video(formats, id_str, title, http_headers)
+
+    def rewrite_as_multi_video(self, formats, id_str, title, http_headers):
+        slice_num_set = set(len(f['entries']) for f in formats)
+        if len(slice_num_set) > 1:
+            fallback_fmt = formats[-1]
+            self.report_warning(f'Found formats have different num of slices. Fallback to best format {fallback_fmt["quality_desc"]}')
+            formats = [fallback_fmt]
+            slice_num = len(fallback_fmt['entries'])
+        else:
+            slice_num = slice_num_set.pop()
+        entries = []
+        for idx in range(slice_num):
+            slice_formats = [{**f} for f in formats]
+            for f in slice_formats:
+                f['url'] = f['entries'][idx]['url']
+                f['filesize'] = f['entries'][idx]['filesize']
+                del f['entries']
+
+            entries.append({
+                'id': f'{id_str}-Frag{idx + 1:02d}',
+                'title': f'{title}-Frag{idx + 1:02d}',
+                'formats': slice_formats,
+                'http_headers': http_headers,
+            })
+        if len(entries) <= 1:
+            info_fmt = {
+                'formats': formats,
+            }
+        else:
+            info_fmt = {
+                '_type': 'multi_video',
+                'entries': entries
+            }
+        return info_fmt
 
 
 class BiliBiliIE(BilibiliBaseIE):
@@ -350,17 +467,16 @@ class BiliBiliIE(BilibiliBaseIE):
         webpage = self._download_webpage(url, video_id)
         initial_state = self._search_json(r'window\.__INITIAL_STATE__\s*=', webpage, 'initial state', video_id)
 
-        is_festival = 'videoData' not in initial_state
-        if is_festival:
-            video_data = initial_state['videoInfo']
-        else:
-            play_info = self._search_json(r'window\.__playinfo__\s*=', webpage, 'play info', video_id)['data']
+        html_has_video_info = 'videoData' in initial_state
+        if html_has_video_info:
             video_data = initial_state['videoData']
+        else:
+            video_data = initial_state['videoInfo']
 
         video_id, title = video_data['bvid'], video_data.get('title')
 
         # Bilibili anthologies are similar to playlists but all videos share the same video ID as the anthology itself.
-        page_list_json = not is_festival and traverse_obj(
+        page_list_json = html_has_video_info and traverse_obj(
             self._download_json(
                 'https://api.bilibili.com/x/player/pagelist', video_id,
                 fatal=False, query={'bvid': video_id, 'jsonp': 'jsonp'},
@@ -382,20 +498,34 @@ class BiliBiliIE(BilibiliBaseIE):
         old_video_id = format_field(aid, None, f'%s_part{part_id or 1}')
 
         cid = traverse_obj(video_data, ('pages', part_id - 1, 'cid')) if part_id else video_data.get('cid')
+        id_str = f'{video_id}{format_field(part_id, None, template=f"_p%02d")}'
 
-        festival_info = {}
-        if is_festival:
+        if html_has_video_info:
+            play_info = self._search_json(r'window\.__playinfo__\s*=', webpage, 'play info', video_id)['data']
+            if 'dash' in play_info:
+                info = {'formats': self.extract_formats(play_info)}
+                if not info['formats']:
+                    raise ExtractorError('Unknown webpage schema')
+            else:
+                # old video
+                self.to_screen('No dash info in play_info, most likely is old video, try method 2')
+                info = self.parse_old_flv_formats(video_id, video_id, cid,
+                                                  play_info['support_formats'] or [], id_str,
+                                                  title, http_headers={'Referer': url})
+        else:
             play_info = self._download_json(
                 'https://api.bilibili.com/x/player/playurl', video_id,
                 query={'bvid': video_id, 'cid': cid, 'fnval': 4048},
                 note='Extracting festival video formats')['data']
 
-            festival_info = traverse_obj(initial_state, {
+            info = traverse_obj(initial_state, {
                 'uploader': ('videoInfo', 'upName'),
                 'uploader_id': ('videoInfo', 'upMid', {str_or_none}),
                 'like_count': ('videoStatus', 'like', {int_or_none}),
                 'thumbnail': ('sectionEpisodes', lambda _, v: v['bvid'] == video_id, 'cover'),
             }, get_all=False)
+
+            info['formats'] = self.extract_formats(play_info)
 
         return {
             **traverse_obj(initial_state, {
@@ -405,15 +535,14 @@ class BiliBiliIE(BilibiliBaseIE):
                 'tags': ('tags', ..., 'tag_name'),
                 'thumbnail': ('videoData', 'pic', {url_or_none}),
             }),
-            **festival_info,
+            **info,
             **traverse_obj(video_data, {
                 'description': 'desc',
                 'timestamp': ('pubdate', {int_or_none}),
                 'view_count': (('viewCount', ('stat', 'view')), {int_or_none}),
                 'comment_count': ('stat', 'reply', {int_or_none}),
             }, get_all=False),
-            'id': f'{video_id}{format_field(part_id, None, "_p%d")}',
-            'formats': self.extract_formats(play_info),
+            'id': id_str,
             '_old_archive_ids': [make_archive_id(self, old_video_id)] if old_video_id else None,
             'title': title,
             'duration': float_or_none(play_info.get('timelength'), scale=1000),
