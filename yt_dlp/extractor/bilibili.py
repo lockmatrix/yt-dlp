@@ -97,11 +97,17 @@ class BilibiliBaseIE(InfoExtractor):
     def parse_old_flv_formats(self, video_id, bv_id, cid, support_formats, id_str, title, http_headers):
         formats = []
         for f in support_formats:
-            playurl = f'https://api.bilibili.com/x/player/playurl?bvid={bv_id}&cid={cid}&qn={f["quality"]}'
+            quality = f["quality"]
+            playurl = f'https://api.bilibili.com/x/player/playurl?bvid={bv_id}&cid={cid}&qn={quality}&fnver=0&fnval=4048'
+
             video_info_ext = self._download_json(playurl, video_id, fatal=False)
             if not video_info_ext:
                 continue
             video_info_ext = video_info_ext['data']
+
+            if video_info_ext.get('quality') != quality:
+                print(f'fetch quality {quality} failed, got {video_info_ext.get("quality")}.')
+                continue
 
             slices = []
             for durl in video_info_ext['durl']:
@@ -400,15 +406,17 @@ class BiliBiliIE(BilibiliBaseIE):
         id_str = f'{video_id}{format_field(part_id, template= f"_p%02d", default="")}'
 
         play_info = self._search_json(r'window.__playinfo__\s*=\s*', webpage, 'play info', video_id)['data']
-        info = {'formats': self.extract_formats(play_info)}
-        if not info['formats']:
-            if 'dash' not in play_info:
-                # old video
-                info = self.parse_old_flv_formats(video_id, bv_id, cid,
-                                                  play_info['support_formats'] or [], id_str,
-                                                  title, http_headers={'Referer': url})
-            else:
+
+        if 'dash' in play_info:
+            info = {'formats': self.extract_formats(play_info)}
+
+            if not info['formats']:
                 raise ExtractorError(f'Unknown webpage schema')
+        else:
+            # old video
+            info = self.parse_old_flv_formats(video_id, bv_id, cid,
+                                              play_info['support_formats'] or [], id_str,
+                                              title, http_headers={'Referer': url})
 
         aid = video_data.get('aid')
         old_video_id = f'{aid}_part{part_id or 1}' if aid else None
