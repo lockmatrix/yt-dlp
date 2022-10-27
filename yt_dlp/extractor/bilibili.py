@@ -555,6 +555,109 @@ class BiliBiliBangumiMediaIE(InfoExtractor):
             for entry in episode_list), media_id)
 
 
+class BilibiliCheeseIE(BilibiliBaseIE):
+    _VALID_URL = r'(?x)https?://www\.bilibili\.com/cheese/play/(?P<id>(?:ss|ep)\d+)'
+
+    _TESTS = [{
+        'url': 'https://www.bilibili.com/cheese/play/ep6902',
+        'info_dict': {
+            'id': 'ep6902',
+            'ext': 'mp4',
+        },
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        self.verbose = True
+
+        chrome_wait_timeout = self.get_param('selenium_browner_timeout', 20)
+        headless = self.get_param('selenium_browner_headless', True)
+
+        from ..selenium_container import SeleniumContainer
+        from selenium.webdriver.support import expected_conditions as EC
+        from selenium.webdriver.common.by import By
+
+        self.to_screen(f'start chrome to query video page...')
+        with SeleniumContainer(
+            headless=headless,
+            close_log_callback=lambda: self.to_screen('Quit chrome and cleanup temp profile...')
+        ) as engine:
+            engine.start()
+
+            if self.get_param('cookiesfrombrowser'):
+                engine.load('https://www.bilibili.com')
+                engine.load_cookies(self._downloader.cookiejar, '.bilibili.com')
+
+            engine.load(url)
+
+            engine.extract_network()
+
+            season_info = None
+            for request_url in engine.response_dict:
+                if request_url.startswith('https://api.bilibili.com/pugv/view/web/season'):
+                    season_info = engine.response_dict[request_url].popitem()[1]['body']
+                    season_info = json.loads(season_info)['data']
+                    self.to_screen(f'loaded season info {request_url}')
+
+            playurl = None
+            for request_url in engine.response_dict:
+                if request_url.startswith('https://api.bilibili.com/pugv/player/web/playurl'):
+                    playurl = engine.response_dict[request_url].popitem()[1]['body']
+                    playurl = json.loads(playurl)['data']
+                    self.to_screen(f'loaded playurl {request_url}')
+
+            season_title = traverse_obj(season_info, 'title')
+            uploader = traverse_obj(season_info, ('up_info', 'uname'))
+            uploader_id = traverse_obj(season_info, ('up_info', 'mid'))
+
+            episodes = [{
+                **e,
+                'id': f'ep{e["id"]}',
+                'url': f'https://www.bilibili.com/cheese/play/ep{e["id"]}',
+                'play_whole': e['playable'] and e.get('label') in [None, '全集试看']
+            } for e in traverse_obj(season_info, 'episodes') or [] ]
+
+            ep_info = [e for e in episodes if e['id'] == video_id][0]
+            if ep_info['index'] == 1:
+                if not self.get_param('noplaylist'):
+                    self.to_screen('Downloading playlist %s - add --no-playlist to just download video' % video_id)
+                    return self.playlist_result(
+                        [self.url_result(entry['url'], BilibiliCheeseIE.ie_key(), entry['id'])
+                         for entry in episodes if entry['play_whole']], season_info['season_id'])
+                else:
+                    self.to_screen('Downloading just video %s because of --no-playlist' % video_id)
+
+            episode_title = ep_info['title']
+
+            engine.wait(chrome_wait_timeout).until(
+                EC.presence_of_element_located((By.TAG_NAME, 'video'))
+            )
+
+            info = self.extract_formats(playurl)
+
+        if not ep_info['play_whole']:
+            return
+
+        return {
+            **info,
+            'id': video_id,
+            'title': f'{season_title} {episode_title}',
+            'season': season_title,
+            'episode': episode_title,
+            'episode_number': ep_info['index'],
+            'uploader': uploader,
+            'uploader_id': uploader_id,
+            'timestamp': ep_info.get('release_date'),
+            'thumbnail': ep_info.get('cover'),
+            'duration': float_or_none(playurl.get('timelength'), scale=1000),
+            'Referer': 'https://www.bilibili.com/',
+            'http_headers': {
+                'Referer': 'https://www.bilibili.com/',
+            }
+        }
+
+
 class BilibiliSpaceBaseIE(InfoExtractor):
     def _extract_playlist(self, fetch_page, get_metadata, get_entries):
         first_page = fetch_page(0)
@@ -1182,11 +1285,11 @@ class BiliLiveIE(InfoExtractor):
 
     _FORMATS = {
         80: {'format_id': 'low', 'format_note': '流畅'},
-        150: {'format_id': 'high_res', 'format_note': '高清'},
-        250: {'format_id': 'ultra_high_res', 'format_note': '超清'},
-        400: {'format_id': 'blue_ray', 'format_note': '蓝光'},
-        10000: {'format_id': 'source', 'format_note': '原画'},
-        20000: {'format_id': '4K', 'format_note': '4K'},
+        150: {'format_id': 'high_res', 'format_note': '高清', 'height': 720},
+        250: {'format_id': 'ultra_high_res', 'format_note': '超清', 'height': 720},
+        400: {'format_id': 'blue_ray', 'format_note': '蓝光', 'height': 1080},
+        10000: {'format_id': 'source', 'format_note': '原画', 'height': 1080},
+        20000: {'format_id': '4K', 'format_note': '4K', 'height': 2160},
         30000: {'format_id': 'dolby', 'format_note': '杜比'},
     }
 
