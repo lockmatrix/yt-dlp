@@ -200,6 +200,7 @@ from .bilibili import (
     BiliIntlIE,
     BiliIntlSeriesIE,
     BiliLiveIE,
+    BilibiliCheeseIE,
 )
 from .biobiochiletv import BioBioChileTVIE
 from .bitchute import (
@@ -1572,6 +1573,7 @@ from .saitosan import SaitosanIE
 from .samplefocus import SampleFocusIE
 from .sapo import SapoIE
 from .savefrom import SaveFromIE
+from .kudm import SbdmIE, GqdmIE
 from .sbs import SBSIE
 from .screen9 import Screen9IE
 from .screencast import ScreencastIE
@@ -2200,6 +2202,7 @@ from .xiami import (
     XiamiArtistIE,
     XiamiCollectionIE
 )
+from .xiaoeknow import XiaoeknownIE
 from .ximalaya import (
     XimalayaIE,
     XimalayaAlbumIE
@@ -2235,6 +2238,7 @@ from .yandexvideo import (
 )
 from .yapfiles import YapFilesIE
 from .yesjapan import YesJapanIE
+from .yhdmp import YhdmpIE
 from .yinyuetai import YinYueTaiIE
 from .ynet import YnetIE
 from .youjizz import YouJizzIE
