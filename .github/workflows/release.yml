@@ -237,49 +237,6 @@ jobs:
     secrets:
       GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
 
-  publish_pypi:
-    needs: [prepare, build]
-    if: ${{ needs.prepare.outputs.pypi_project }}
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write  # mandatory for trusted publishing
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      - name: Install Requirements
-        run: |
-          sudo apt -y install pandoc man
-          python -m pip install -U pip setuptools wheel twine
-          python -m pip install -U -r requirements.txt
-
-      - name: Prepare
-        env:
-          version: ${{ needs.prepare.outputs.version }}
-          suffix: ${{ needs.prepare.outputs.pypi_suffix }}
-          channel: ${{ needs.prepare.outputs.channel }}
-          target_repo: ${{ needs.prepare.outputs.target_repo }}
-          pypi_project: ${{ needs.prepare.outputs.pypi_project }}
-        run: |
-          python devscripts/update-version.py -c "${{ env.channel }}" -r "${{ env.target_repo }}" -s "${{ env.suffix }}" "${{ env.version }}"
-          python devscripts/make_lazy_extractors.py
-          sed -i -E "s/(name=')[^']+(',  # package name)/\1${{ env.pypi_project }}\2/" setup.py
-
-      - name: Build
-        run: |
-          rm -rf dist/*
-          make pypi-files
-          python devscripts/set-variant.py pip -M "You installed yt-dlp with pip or using the wheel from PyPi; Use that to update"
-          python setup.py sdist bdist_wheel
-
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          verbose: true
-
   publish:
     needs: [prepare, build]
     permissions:
