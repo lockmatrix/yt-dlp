@@ -227,6 +227,7 @@ from .bilibili import (
     BiliIntlIE,
     BiliIntlSeriesIE,
     BiliLiveIE,
+    BilibiliCheeseIE,
 )
 from .biobiochiletv import BioBioChileTVIE
 from .bitchute import (
@@ -1750,6 +1751,7 @@ from .saitosan import SaitosanIE
 from .samplefocus import SampleFocusIE
 from .sapo import SapoIE
 from .savefrom import SaveFromIE
+from .kudm import SbdmIE, GqdmIE
 from .sbs import SBSIE
 from .screen9 import Screen9IE
 from .screencast import ScreencastIE
@@ -2485,6 +2487,7 @@ from .yappy import (
     YappyProfileIE,
 )
 from .yesjapan import YesJapanIE
+from .yhdmp import YhdmpIE, NtyouIE
 from .yinyuetai import YinYueTaiIE
 from .yle_areena import YleAreenaIE
 from .ynet import YnetIE
