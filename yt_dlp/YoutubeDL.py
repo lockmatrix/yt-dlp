@@ -3242,6 +3242,7 @@ class YoutubeDL:
                                  f'Non-uniform pixel ratio {stretched_ratio}',
                                  FFmpegFixupStretchedPP)
 
+                    print(f'info_dict protocol: {info_dict["protocol"]}')
                     downloader = get_suitable_downloader(info_dict, self.params) if 'protocol' in info_dict else None
                     downloader = downloader.FD_NAME if downloader else None
                     print(f'use downloader: {downloader}')

@@ -3,6 +3,8 @@ from ..utils import NO_DEFAULT, determine_protocol
 
 def get_suitable_downloader(info_dict, params={}, default=NO_DEFAULT, protocol=None, to_stdout=False):
     info_dict['protocol'] = determine_protocol(info_dict)
+    print(f'get_suitable_downloader protocol: {info_dict["protocol"]}')
+    
     info_copy = info_dict.copy()
     info_copy['to_stdout'] = to_stdout
 
