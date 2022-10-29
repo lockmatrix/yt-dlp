@@ -1285,11 +1285,11 @@ class BiliLiveIE(InfoExtractor):
 
     _FORMATS = {
         80: {'format_id': 'low', 'format_note': '流畅'},
-        150: {'format_id': 'high_res', 'format_note': '高清'},
-        250: {'format_id': 'ultra_high_res', 'format_note': '超清'},
-        400: {'format_id': 'blue_ray', 'format_note': '蓝光'},
-        10000: {'format_id': 'source', 'format_note': '原画'},
-        20000: {'format_id': '4K', 'format_note': '4K'},
+        150: {'format_id': 'high_res', 'format_note': '高清', 'height': 720},
+        250: {'format_id': 'ultra_high_res', 'format_note': '超清', 'height': 720},
+        400: {'format_id': 'blue_ray', 'format_note': '蓝光', 'height': 1080},
+        10000: {'format_id': 'source', 'format_note': '原画', 'height': 1080},
+        20000: {'format_id': '4K', 'format_note': '4K', 'height': 2160},
         30000: {'format_id': 'dolby', 'format_note': '杜比'},
     }
 
