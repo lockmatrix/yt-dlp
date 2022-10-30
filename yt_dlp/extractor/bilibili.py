@@ -160,13 +160,14 @@ class BilibiliBaseIE(InfoExtractor):
             quality = f["quality"]
             playurl = f'https://api.bilibili.com/x/player/playurl?bvid={bv_id}&cid={cid}&qn={quality}&fnver=0&fnval=4048'
 
-            video_info_ext = self._download_json(playurl, video_id, fatal=False)
+            video_info_ext = self._download_json(playurl, video_id, fatal=False,
+                                                 note=f'Fetching url for quality {quality} format')
             if not video_info_ext:
                 continue
             video_info_ext = video_info_ext['data']
 
             if video_info_ext.get('quality') != quality:
-                print(f'fetch quality {quality} failed, got {video_info_ext.get("quality")}.')
+                self.to_screen(f'fetch quality {quality} failed, got {video_info_ext.get("quality")}.')
                 continue
 
             slices = []
@@ -438,6 +439,7 @@ class BiliBiliIE(BilibiliBaseIE):
                 raise ExtractorError(f'Unknown webpage schema')
         else:
             # old video
+            self.to_screen('No dash info in play_info, most likely is old video, try method 2')
             info = self.parse_old_flv_formats(video_id, video_id, cid,
                                               play_info['support_formats'] or [], id_str,
                                               title, http_headers={'Referer': url})
