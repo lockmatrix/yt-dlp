@@ -43,6 +43,76 @@ jobs:
       if: "env.PUSH_VERSION_COMMIT != ''"
       run: git push origin ${{ github.event.ref }}
 
+
+  build_macos:
+    runs-on: macos-11
+    needs: prepare
+
+    steps:
+    - uses: actions/checkout@v3
+    # NB: In order to create a universal2 application, the version of python3 in /usr/bin has to be used
+    - name: Install Requirements
+      run: |
+          brew install coreutils
+          /usr/bin/python3 -m pip install -U --user pip Pyinstaller -r requirements.txt
+
+    - name: Prepare
+      run: |
+          /usr/bin/python3 devscripts/update-version.py ${{ needs.prepare.outputs.version_suffix }}
+          /usr/bin/python3 devscripts/make_lazy_extractors.py
+    - name: Build
+      run: |
+          /usr/bin/python3 pyinst.py --target-architecture universal2 --onedir
+          (cd ./dist/yt-dlp_macos && zip -r ../yt-dlp_macos.zip .)
+          /usr/bin/python3 pyinst.py --target-architecture universal2
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        path: |
+          dist/yt-dlp_macos
+          dist/yt-dlp_macos.zip
+
+
+  build_macos_legacy:
+    runs-on: macos-latest
+    needs: prepare
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Python
+      # We need the official Python, because the GA ones only support newer macOS versions
+      env:
+        PYTHON_VERSION: 3.10.5
+        MACOSX_DEPLOYMENT_TARGET: 10.9  # Used up by the Python build tools
+      run: |
+          # Hack to get the latest patch version. Uncomment if needed
+          #brew install python@3.10
+          #export PYTHON_VERSION=$( $(brew --prefix)/opt/python@3.10/bin/python3 --version | cut -d ' ' -f 2 )
+          curl https://www.python.org/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}-macos11.pkg -o "python.pkg"
+          sudo installer -pkg python.pkg -target /
+          python3 --version
+    - name: Install Requirements
+      run: |
+          brew install coreutils
+          python3 -m pip install -U --user pip Pyinstaller -r requirements.txt
+
+    - name: Prepare
+      run: |
+          python3 devscripts/update-version.py ${{ needs.prepare.outputs.version_suffix }}
+          python3 devscripts/make_lazy_extractors.py
+    - name: Build
+      run: |
+          python3 pyinst.py
+          mv dist/yt-dlp_macos dist/yt-dlp_macos_legacy
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        path: |
+          dist/yt-dlp_macos_legacy
+
+
   build_windows:
     runs-on: windows-latest
     needs: prepare
@@ -81,7 +151,7 @@ jobs:
 
   publish_release:
     runs-on: ubuntu-latest
-    needs: [prepare, build_windows]
+    needs: [prepare, build_windows, build_macos, build_macos_legacy]
 
     steps:
     - uses: actions/checkout@v3
@@ -102,9 +172,15 @@ jobs:
           sha256sum artifact/yt-dlp.exe | awk '{print $1 "  yt-dlp.exe"}' >> SHA2-256SUMS
           sha256sum artifact/yt-dlp_win.zip | awk '{print $1 "  yt-dlp_win.zip"}' >> SHA2-256SUMS
           sha256sum artifact/yt-dlp_min.exe | awk '{print $1 "  yt-dlp_min.exe"}' >> SHA2-256SUMS
+          sha256sum artifact/yt-dlp_macos | awk '{print $1 "  yt-dlp_macos"}' >> SHA2-256SUMS
+          sha256sum artifact/yt-dlp_macos.zip | awk '{print $1 "  yt-dlp_macos.zip"}' >> SHA2-256SUMS
+          sha256sum artifact/yt-dlp_macos_legacy | awk '{print $1 "  yt-dlp_macos_legacy"}' >> SHA2-256SUMS
           sha512sum artifact/yt-dlp.exe | awk '{print $1 "  yt-dlp.exe"}' >> SHA2-512SUMS
           sha512sum artifact/yt-dlp_win.zip | awk '{print $1 "  yt-dlp_win.zip"}' >> SHA2-512SUMS
           sha512sum artifact/yt-dlp_min.exe | awk '{print $1 "  yt-dlp_min.exe"}' >> SHA2-512SUMS
+          sha512sum artifact/yt-dlp_macos | awk '{print $1 "  yt-dlp_macos"}' >> SHA2-512SUMS
+          sha512sum artifact/yt-dlp_macos.zip | awk '{print $1 "  yt-dlp_macos.zip"}' >> SHA2-512SUMS
+          sha512sum artifact/yt-dlp_macos_legacy | awk '{print $1 "  yt-dlp_macos_legacy"}' >> SHA2-512SUMS
 
     - name: Publish Release
       uses: yt-dlp/action-gh-release@v1
@@ -129,4 +205,7 @@ jobs:
           artifact/yt-dlp.exe
           artifact/yt-dlp_win.zip
           artifact/yt-dlp_min.exe
+          artifact/yt-dlp_macos
+          artifact/yt-dlp_macos.zip
+          artifact/yt-dlp_macos_legacy
           _update_spec
