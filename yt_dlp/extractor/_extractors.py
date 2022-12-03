@@ -2279,7 +2279,7 @@ from .yandexvideo import (
 )
 from .yapfiles import YapFilesIE
 from .yesjapan import YesJapanIE
-from .yhdmp import YhdmpIE
+from .yhdmp import YhdmpIE, NtyouIE
 from .yinyuetai import YinYueTaiIE
 from .yle_areena import YleAreenaIE
 from .ynet import YnetIE
