@@ -117,3 +117,72 @@ class YhdmpIE(InfoExtractor):
                 }
 
         raise ExtractorError(f'unknown format {url}')
+
+
+class NtyouIE(InfoExtractor):
+    _VALID_URL = r'(?x)https?://www\.ntyou\.cc/play/(?P<id>\d+-\d+-\d+)\.html'
+
+    _TESTS = [{
+        'url': 'http://www.ntyou.cc/play/4495-1-10.html',
+        'info_dict': {
+            'id': '4495-1-10',
+            'ext': 'mp4',
+            'title': '银河英雄传说：全新命题 策谋',
+        },
+    }]
+
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        # obfuscate video info, use headless browner to run it
+
+        chrome_wait_timeout = self.get_param('selenium_browner_timeout', 20)
+        headless = self.get_param('selenium_browner_headless', True)
+        proxy = self.get_param('proxy', None)
+
+        from ..selenium_container import SeleniumContainer
+        from selenium.webdriver.support import expected_conditions as EC
+        from selenium.webdriver.common.by import By
+
+        self.to_screen(f'start chrome to query video page...')
+        with SeleniumContainer(
+            headless=headless,
+            close_log_callback=lambda: self.to_screen('Quit chrome and cleanup temp profile...')
+        ) as engine:
+            engine.start(proxy=proxy)
+
+            engine.load(url)
+
+            iframe_e = engine.wait(chrome_wait_timeout).until(
+                EC.presence_of_element_located((By.ID, 'playleft'))
+            )
+
+            title = engine.find_element(By.TAG_NAME, 'h4').get_attribute('innerText')
+            episode_title = engine.find_element(By.CLASS_NAME, 'active-play').get_attribute('innerText')
+            title += ' ' + episode_title
+
+            iframe_e = iframe_e.find_element(By.TAG_NAME, 'iframe')
+
+            engine.driver.switch_to.frame(iframe_e)
+            video_e = engine.wait(chrome_wait_timeout).until(
+                EC.presence_of_element_located((By.TAG_NAME, 'video'))
+            )
+
+            info_dict = {
+                    'id': video_id,
+                    'title': title,
+                    '_type': 'video',
+                }
+
+            video_url = video_e.get_attribute('src')
+
+            if 'mime_type=video_mp4' in video_url:
+                info_dict['ext'] = 'mp4'
+            else:
+                self.to_screen('guess ext -> mp4')
+
+            return {
+                **info_dict,
+                'formats': [{'url': video_url}],
+            }
