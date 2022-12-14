@@ -8,7 +8,7 @@ from ..utils import ExtractorError, int_or_none, float_or_none
 
 
 class XiaoeknownIE(InfoExtractor):
-    _VALID_URL = r'(?x)https?://[^.]+\.h5\.xiaoeknow\.com/v1/course/video/(?P<id>[^?]+)'
+    _VALID_URL = r'(?x)https?://[^.]+\.h5\.xiaoeknow\.com/[A-Za-z0-9]+/course/video/(?P<id>[^?]+)'
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
