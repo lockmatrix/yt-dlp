@@ -53,7 +53,7 @@ class YhdmpIE(InfoExtractor):
             )
 
             title = engine.find_element(By.TAG_NAME, 'title').get_attribute('innerText')
-            title_mobj = re.match(r'(?P<t>.*?)\—在线播放\—樱花动漫\(P\)', title)
+            title_mobj = re.match(r'(?P<t>.*?)\—在线播放\—樱花动漫(\(P\))?', title)
             if title_mobj.group('t'):
                 title = title_mobj.group('t')
 
