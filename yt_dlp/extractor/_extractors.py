@@ -87,7 +87,10 @@ from .alura import (
     AluraCourseIE
 )
 from .amcnetworks import AMCNetworksIE
-from .amazon import AmazonStoreIE
+from .amazon import (
+    AmazonStoreIE,
+    AmazonReviewsIE,
+)
 from .amazonminitv import (
     AmazonMiniTVIE,
     AmazonMiniTVSeasonIE,
@@ -184,6 +187,10 @@ from .bbc import (
 from .beeg import BeegIE
 from .behindkink import BehindKinkIE
 from .bellmedia import BellMediaIE
+from .beatbump import (
+    BeatBumpVideoIE,
+    BeatBumpPlaylistIE,
+)
 from .beatport import BeatportIE
 from .berufetv import BerufeTVIE
 from .bet import BetIE
@@ -828,6 +835,7 @@ from .jwplatform import JWPlatformIE
 from .kakao import KakaoIE
 from .kaltura import KalturaIE
 from .kanal2 import Kanal2IE
+from .kankanews import KankaNewsIE
 from .karaoketv import KaraoketvIE
 from .karrierevideos import KarriereVideosIE
 from .keezmovies import KeezMoviesIE
@@ -836,6 +844,10 @@ from .ketnet import KetnetIE
 from .khanacademy import (
     KhanAcademyIE,
     KhanAcademyUnitIE,
+)
+from .kick import (
+    KickIE,
+    KickVODIE,
 )
 from .kicker import KickerIE
 from .kickstarter import KickStarterIE
@@ -1156,6 +1168,7 @@ from .neteasemusic import (
 from .netverse import (
     NetverseIE,
     NetversePlaylistIE,
+    NetverseSearchIE,
 )
 from .newgrounds import (
     NewgroundsIE,
@@ -1406,6 +1419,8 @@ from .pokergo import (
 from .polsatgo import PolsatGoIE
 from .polskieradio import (
     PolskieRadioIE,
+    PolskieRadioLegacyIE,
+    PolskieRadioAuditionIE,
     PolskieRadioCategoryIE,
     PolskieRadioPlayerIE,
     PolskieRadioPodcastIE,
@@ -1697,6 +1712,7 @@ from .soundcloud import (
     SoundcloudSetIE,
     SoundcloudRelatedIE,
     SoundcloudUserIE,
+    SoundcloudUserPermalinkIE,
     SoundcloudTrackStationIE,
     SoundcloudPlaylistIE,
     SoundcloudSearchIE,
@@ -1858,6 +1874,11 @@ from .theweatherchannel import TheWeatherChannelIE
 from .thisamericanlife import ThisAmericanLifeIE
 from .thisav import ThisAVIE
 from .thisoldhouse import ThisOldHouseIE
+from .thisvid import (
+    ThisVidIE,
+    ThisVidMemberIE,
+    ThisVidPlaylistIE,
+)
 from .threespeak import (
     ThreeSpeakIE,
     ThreeSpeakUserIE,
@@ -1907,6 +1928,7 @@ from .trovo import (
     TrovoChannelVodIE,
     TrovoChannelClipIE,
 )
+from .trtcocuk import TrtCocukVideoIE
 from .trueid import TrueIDIE
 from .trunews import TruNewsIE
 from .truth import TruthIE
@@ -2090,6 +2112,13 @@ from .videocampus_sachsen import (
 )
 from .videodetective import VideoDetectiveIE
 from .videofyme import VideofyMeIE
+from .videoken import (
+    VideoKenIE,
+    VideoKenPlayerIE,
+    VideoKenPlaylistIE,
+    VideoKenCategoryIE,
+    VideoKenTopicIE,
+)
 from .videomore import (
     VideomoreIE,
     VideomoreVideoIE,
