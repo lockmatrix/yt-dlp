@@ -10,6 +10,8 @@ class HlsFakeHeaderFD(HlsFD):
     FD_NAME = 'hlsnative_fake_header'
 
     def _fixup_fragment(self, ctx, frag_bytes):
+        if frag_bytes is None:
+            return None
         ts_start_pos = frag_bytes.find(b'\x47\x40')
         frag_bytes = frag_bytes[ts_start_pos:]
         return frag_bytes
