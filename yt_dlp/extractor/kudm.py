@@ -147,12 +147,15 @@ class GqdmIE(InfoExtractor):
 
         play_info = self._search_json(r'player_aaaa\s*=', webpage, 'play_info', video_id, default={})
 
+        m3u8_url = play_info['url']
+        self.to_screen(f'url: {m3u8_url}')
+
         return {
             'id': video_id,
             'season': season_title,
             'title': f'{season_title} {title}',
             'formats': [{
-                'url': play_info['url'],
+                'url': m3u8_url,
                 'protocol': 'm3u8_fake_header',
                 'ext': 'mp4',
             }]
