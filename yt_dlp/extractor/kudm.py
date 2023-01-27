@@ -145,20 +145,73 @@ class GqdmIE(InfoExtractor):
         url_parsed = urllib.parse.urlparse(url)
         title = self._search_regex(f'<a href="{url_parsed.path}">(?P<title>[^<]+)</a>', webpage, 'title')
 
-        play_info = self._search_json(r'player_aaaa\s*=', webpage, 'play_info', video_id, default={})
+        chrome_wait_timeout = self.get_param('selenium_browner_timeout', 20)
+        headless = self.get_param('selenium_browner_headless', True)
+        proxy = self.get_param('proxy', None)
 
-        m3u8_url = play_info['url']
-        if m3u8_url.startswith('onopen-'):
-            m3u8_url = 'https://bf.sbdm.cc/m3u8.php?url=' + m3u8_url
-        self.to_screen(f'url: {m3u8_url}')
+        from ..selenium_container import SeleniumContainer
+        from selenium.webdriver.support import expected_conditions as EC
+        from selenium.webdriver.common.by import By
 
-        return {
-            'id': video_id,
-            'season': season_title,
-            'title': f'{season_title} {title}',
-            'formats': [{
-                'url': m3u8_url,
-                'protocol': 'm3u8_fake_header',
-                'ext': 'mp4',
-            }]
-        }
+        self.to_screen(f'start chrome to query video page...')
+        with SeleniumContainer(
+            headless=headless,
+            close_log_callback=lambda: self.to_screen('Quit chrome and cleanup temp profile...')
+        ) as engine:
+            engine.start(proxy=proxy)
+
+            self.to_screen('query video page...')
+            engine.load(url)
+
+            iframe_e = engine.wait(chrome_wait_timeout).until(
+                EC.presence_of_element_located((By.ID, 'playleft'))
+            )
+            iframe_e = iframe_e.find_element(By.TAG_NAME, 'iframe')
+
+            engine.driver.switch_to.frame(iframe_e)
+
+            video_e = engine.wait(chrome_wait_timeout).until(
+                EC.presence_of_element_located((By.TAG_NAME, 'video'))
+            )
+
+            self.to_screen('play video to detect video metadata ...')
+            engine.execute_script("document.getElementsByTagName('video')[0].volume = 0")
+            engine.execute_script("document.getElementsByTagName('video')[0].muted = true")
+            engine.execute_script("document.getElementsByTagName('video')[0].play()")
+
+            videoHeight, videoWidth = None, None
+            for _ in range(chrome_wait_timeout):
+                videoHeight = engine.execute_script("return document.getElementsByTagName('video')[0].videoHeight")
+                videoWidth = engine.execute_script("return document.getElementsByTagName('video')[0].videoWidth")
+
+                if videoHeight == 0:
+                    videoHeight, videoWidth = None, None
+                    time.sleep(1)
+                else:
+                    break
+
+            video_url = None
+            engine.extract_network()
+            for url in engine.response_updated_key_list:
+                if '.m3u8' in url:
+                    print(f'found .m3u8: {url}')
+                    video_url = url
+
+            self.to_screen('Check chrome media-internals info ...')
+            fmt_info = engine.parse_video_info()
+
+            if '.m3u8' in video_url:
+                return {
+                    'id': video_id,
+                    'season': season_title,
+                    'title': f'{season_title} {title}',
+                    '_type': 'video',
+                    'formats': [{
+                        'url': video_url,
+                        'protocol': 'm3u8_fake_header',
+                        'ext': 'mp4',
+                        **fmt_info
+                        }]
+                }
+
+        raise ExtractorError(f'unknown format {url}')
