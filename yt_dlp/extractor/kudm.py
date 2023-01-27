@@ -148,6 +148,8 @@ class GqdmIE(InfoExtractor):
         play_info = self._search_json(r'player_aaaa\s*=', webpage, 'play_info', video_id, default={})
 
         m3u8_url = play_info['url']
+        if m3u8_url.startswith('onopen-'):
+            m3u8_url = 'https://bf.sbdm.cc/m3u8.php?url=' + m3u8_url
         self.to_screen(f'url: {m3u8_url}')
 
         return {

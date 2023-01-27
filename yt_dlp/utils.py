@@ -773,7 +773,6 @@ def sanitized_Request(url, *args, **kwargs):
     if auth_header is not None:
         headers = args[1] if len(args) >= 2 else kwargs.setdefault('headers', {})
         headers['Authorization'] = auth_header
-        print(f'found auth: {auth_header}')
     return urllib.request.Request(url, *args, **kwargs)
 
 
