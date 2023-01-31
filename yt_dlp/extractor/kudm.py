@@ -193,7 +193,7 @@ class GqdmIE(InfoExtractor):
             video_url = None
             engine.extract_network()
             for url in engine.response_updated_key_list:
-                if '.m3u8' in url:
+                if '.m3u8' in url and 'm3u8.php?url=' not in url:
                     print(f'found .m3u8: {url}')
                     video_url = url
 
