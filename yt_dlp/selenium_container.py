@@ -42,8 +42,8 @@ class SeleniumContainer:
         if self.headless:
             chrome_options.add_argument('--headless')
 
-        prefs = {"profile.managed_default_content_settings": {'images': 2}}
-        chrome_options.add_experimental_option("prefs", prefs)
+        # prefs = {"profile.managed_default_content_settings": {'images': 2}}
+        # chrome_options.add_experimental_option("prefs", prefs)
 
         caps = DesiredCapabilities.CHROME
         caps['goog:loggingPrefs'] = {'performance': 'ALL'}
