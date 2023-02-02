@@ -260,6 +260,7 @@ from .bilibili import (
     BiliIntlIE,
     BiliIntlSeriesIE,
     BiliLiveIE,
+    BilibiliCheeseIE,
 )
 from .biobiochiletv import BioBioChileTVIE
 from .bitchute import (
@@ -2480,6 +2481,7 @@ from .xhamster import (
     XHamsterUserIE,
 )
 from .xiaohongshu import XiaoHongShuIE
+from .xiaoyuzhou import XiaoYuZhouIE
 from .ximalaya import (
     XimalayaAlbumIE,
     XimalayaIE,
