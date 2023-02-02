@@ -269,6 +269,7 @@ from .bilibili import (
     BiliIntlIE,
     BiliIntlSeriesIE,
     BiliLiveIE,
+    BilibiliCheeseIE,
 )
 from .biobiochiletv import BioBioChileTVIE
 from .bitchute import (
@@ -1815,6 +1816,7 @@ from .safari import (
 from .saitosan import SaitosanIE
 from .samplefocus import SampleFocusIE
 from .sapo import SapoIE
+from .kudm import SbdmIE, GqdmIE
 from .sbs import SBSIE
 from .sbscokr import (
     SBSCoKrAllvodProgramIE,
@@ -2495,6 +2497,7 @@ from .xhamster import (
     XHamsterUserIE,
 )
 from .xiaohongshu import XiaoHongShuIE
+from .xiaoyuzhou import XiaoYuZhouIE
 from .ximalaya import (
     XimalayaAlbumIE,
     XimalayaIE,
