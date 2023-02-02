@@ -27,7 +27,7 @@ class SeleniumContainer:
         self.response_updated_key_list = []
 
     def start(self, proxy=None):
-        chrome_options = uc.Options()
+        chrome_options = uc.ChromeOptions()
         chrome_options.add_argument('--log-level=3')
         chrome_options.add_argument("--disable-blink-features")
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
