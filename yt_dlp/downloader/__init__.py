@@ -36,6 +36,7 @@ from .rtsp import RtspFD
 from .websocket import WebSocketFragmentFD
 from .youtube_live_chat import YoutubeLiveChatFD
 from .bunnycdn import BunnyCdnFD
+from .hls_fake_header import HlsFakeHeaderFD
 
 PROTOCOL_MAP = {
     'rtmp': RtmpFD,
@@ -109,6 +110,9 @@ def _get_suitable_downloader(info_dict, protocol, params, default):
     if protocol == 'http_dash_segments':
         if info_dict.get('is_live') and (external_downloader or '').lower() != 'native':
             return FFmpegFD
+
+    if protocol == 'm3u8_fake_header':
+        return HlsFakeHeaderFD
 
     if protocol in ('m3u8', 'm3u8_native'):
         if info_dict.get('is_live'):
