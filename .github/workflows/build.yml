@@ -353,7 +353,7 @@ jobs:
       - name: Install Python
         # We need the official Python, because the GA ones only support newer macOS versions
         env:
-          PYTHON_VERSION: 3.10.5
+          PYTHON_VERSION: 3.11.8
           MACOSX_DEPLOYMENT_TARGET: 10.9 # Used up by the Python build tools
         run: |
           # Hack to get the latest patch version. Uncomment if needed
@@ -403,8 +403,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: # 3.8 is used for Win7 support
-          python-version: "3.8"
+        with:
+          python-version: "3.11"
       - name: Install Requirements
         run: | # Custom pyinstaller built with https://github.com/yt-dlp/pyinstaller-builds
           python devscripts/install_deps.py -o --include build
