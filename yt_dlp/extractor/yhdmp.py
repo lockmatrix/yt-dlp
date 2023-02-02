@@ -87,6 +87,9 @@ class YhdmpIE(InfoExtractor):
                 else:
                     break
 
+            self.to_screen('Found videoHeight')
+            time.sleep(1)
+
             engine.extract_network()
             for url in engine.response_updated_key_list:
                 if '.m3u8' in url:
