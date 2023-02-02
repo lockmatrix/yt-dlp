@@ -73,7 +73,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.12.8"
 
       - name: Process inputs
         id: process_inputs
@@ -233,66 +233,6 @@ jobs:
     secrets:
       GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
 
-  publish_pypi:
-    needs: [prepare, build]
-    if: ${{ needs.prepare.outputs.pypi_project }}
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write  # mandatory for trusted publishing
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-
-      - name: Install Requirements
-        run: |
-          sudo apt -y install pandoc man
-          python devscripts/install_deps.py -o --include build
-
-      - name: Prepare
-        env:
-          version: ${{ needs.prepare.outputs.version }}
-          suffix: ${{ needs.prepare.outputs.pypi_suffix }}
-          channel: ${{ needs.prepare.outputs.channel }}
-          target_repo: ${{ needs.prepare.outputs.target_repo }}
-          pypi_project: ${{ needs.prepare.outputs.pypi_project }}
-        run: |
-          python devscripts/update-version.py -c "${{ env.channel }}" -r "${{ env.target_repo }}" -s "${{ env.suffix }}" "${{ env.version }}"
-          python devscripts/update_changelog.py -vv
-          python devscripts/make_lazy_extractors.py
-          sed -i -E '0,/(name = ")[^"]+(")/s//\1${{ env.pypi_project }}\2/' pyproject.toml
-
-      - name: Build
-        run: |
-          rm -rf dist/*
-          make pypi-files
-          printf '%s\n\n' \
-            'Official repository: <https://github.com/yt-dlp/yt-dlp>' \
-            '**PS**: Some links in this document will not work since this is a copy of the README.md from Github' > ./README.md.new
-          cat ./README.md >> ./README.md.new && mv -f ./README.md.new ./README.md
-          python devscripts/set-variant.py pip -M "You installed yt-dlp with pip or using the wheel from PyPi; Use that to update"
-          make clean-cache
-          python -m build --no-isolation .
-
-      - name: Upload artifacts
-        if: github.event_name != 'workflow_dispatch'
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-pypi
-          path: |
-            dist/*
-          compression-level: 0
-
-      - name: Publish to PyPI
-        if: github.event_name == 'workflow_dispatch'
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          verbose: true
-
   publish:
     needs: [prepare, build]
     permissions:
@@ -310,7 +250,7 @@ jobs:
           merge-multiple: true
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.12.8"
 
       - name: Generate release notes
         env:
