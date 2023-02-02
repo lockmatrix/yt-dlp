@@ -10,11 +10,9 @@ from .utils import (
     try_call,
 )
 
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
+import undetected_chromedriver as uc
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 class SeleniumContainer:
@@ -29,7 +27,7 @@ class SeleniumContainer:
         self.response_updated_key_list = []
 
     def start(self, proxy=None):
-        chrome_options = Options()
+        chrome_options = uc.Options()
         chrome_options.add_argument('--log-level=3')
         chrome_options.add_argument("--disable-blink-features")
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
@@ -48,7 +46,7 @@ class SeleniumContainer:
         caps = DesiredCapabilities.CHROME
         caps['goog:loggingPrefs'] = {'performance': 'ALL'}
 
-        self.driver = webdriver.Chrome(options=chrome_options, desired_capabilities=caps)
+        self.driver = uc.Chrome(options=chrome_options, desired_capabilities=caps)
 
         self.driver.execute_cdp_cmd('Network.enable', {
             'maxResourceBufferSize': 1024 * 1024 * 1024,
@@ -187,8 +185,8 @@ class SeleniumContainer:
         self.load('chrome://media-internals/')
         time.sleep(1)
         self.execute_script("document.getElementsByClassName('player-name')[0].click()")
-        video_info_e = self.find_element(By.XPATH, '//table[@id="player-property-table"]//td[text()="kVideoTracks"]/following-sibling::td')
-        audio_info_e = self.find_element(By.XPATH, '//table[@id="player-property-table"]//td[text()="kAudioTracks"]/following-sibling::td')
+        video_info_e = self.find_element(uc.By.XPATH, '//table[@id="player-property-table"]//td[text()="kVideoTracks"]/following-sibling::td')
+        audio_info_e = self.find_element(uc.By.XPATH, '//table[@id="player-property-table"]//td[text()="kAudioTracks"]/following-sibling::td')
 
         video_info_dict = json.loads(video_info_e.get_attribute('innerText'))[0]
         audio_info_dict = json.loads(audio_info_e.get_attribute('innerText'))[0]
