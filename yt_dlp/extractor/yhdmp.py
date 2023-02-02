@@ -32,7 +32,7 @@ class YhdmpIE(InfoExtractor):
         # yhdmp obfuscate video info, use headless browner to run it
 
         chrome_wait_timeout = self.get_param('selenium_browner_timeout', 20)
-        headless = self.get_param('selenium_browner_headless', True)
+        headless = self.get_param('selenium_browner_headless', False)
         proxy = self.get_param('proxy', None)
 
         from ..selenium_container import SeleniumContainer

@@ -31,7 +31,7 @@ class SbdmIE(InfoExtractor):
         season_url_path = url[len('https://www.sbdm.net'):]
 
         chrome_wait_timeout = self.get_param('selenium_browner_timeout', 20)
-        headless = self.get_param('selenium_browner_headless', True)
+        headless = self.get_param('selenium_browner_headless', False)
         proxy = self.get_param('proxy', None)
 
         from ..selenium_container import SeleniumContainer
@@ -146,7 +146,7 @@ class GqdmIE(InfoExtractor):
         title = self._search_regex(f'<a href="{url_parsed.path}">(?P<title>[^<]+)</a>', webpage, 'title')
 
         chrome_wait_timeout = self.get_param('selenium_browner_timeout', 20)
-        headless = self.get_param('selenium_browner_headless', True)
+        headless = self.get_param('selenium_browner_headless', False)
         proxy = self.get_param('proxy', None)
 
         from ..selenium_container import SeleniumContainer
