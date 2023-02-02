@@ -259,8 +259,8 @@ jobs:
           MACOSX_DEPLOYMENT_TARGET: 10.9 # Used up by the Python build tools
         run: |
           # Hack to get the latest patch version. Uncomment if needed
-          #brew install python@3.10
-          #export PYTHON_VERSION=$( $(brew --prefix)/opt/python@3.10/bin/python3 --version | cut -d ' ' -f 2 )
+          brew install python@3.10
+          export PYTHON_VERSION=$( $(brew --prefix)/opt/python@3.10/bin/python3 --version | cut -d ' ' -f 2 )
           curl https://www.python.org/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}-macos11.pkg -o "python.pkg"
           sudo installer -pkg python.pkg -target /
           python3 --version
@@ -302,8 +302,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
-        with: # 3.8 is used for Win7 support
-          python-version: "3.8"
+        with:
+          python-version: "3.10"
       - name: Install Requirements
         run: | # Custom pyinstaller built with https://github.com/yt-dlp/pyinstaller-builds
           python -m pip install -U pip setuptools wheel py2exe
