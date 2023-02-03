@@ -401,7 +401,6 @@ class BiliBiliIE(BilibiliBaseIE):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         initial_state = self._search_json(r'window\.__INITIAL_STATE__\s*=', webpage, 'initial state', video_id)
-        play_info = self._search_json(r'window\.__playinfo__\s*=', webpage, 'play info', video_id)['data']
 
         video_data = initial_state['videoData']
         video_id, title = video_data['bvid'], video_data.get('title')
@@ -430,6 +429,8 @@ class BiliBiliIE(BilibiliBaseIE):
 
         cid = traverse_obj(video_data, ('pages', part_id - 1, 'cid')) if part_id else video_data.get('cid')
         id_str = f'{video_id}{format_field(part_id, None, template=f"_p%02d")}'
+
+        play_info = traverse_obj(self._search_json(r'window\.__playinfo__\s*=', webpage, 'play info', video_id, fatal=False), 'data') or {}
 
         if 'dash' in play_info:
             info = {'formats': self.extract_formats(play_info)}
