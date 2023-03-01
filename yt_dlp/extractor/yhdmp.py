@@ -7,18 +7,18 @@ from ..utils import ExtractorError, int_or_none, float_or_none
 
 
 class YhdmpIE(InfoExtractor):
-    _VALID_URL = r'(?x)https?://(?:www\.yhdmp\.cc/vp/)(?P<id>\d+-\d+-\d+)\.html'
+    _VALID_URL = r'(?x)https?://(?:www\.yhdmp\.net/vp/)(?P<id>\d+-\d+-\d+)\.html'
 
     _TESTS = [{
         #  yhdmp_obfuscate_m3u8
-        'url': 'https://www.yhdmp.cc/vp/22216-2-0.html',
+        'url': 'https://www.yhdmp.net/vp/22216-2-0.html',
         'info_dict': {
             'id': '22216-2-0',
             'ext': 'mp4',
             'title': '异世界舅舅 第1集',
         },
     }, {
-        'url': 'https://www.yhdmp.cc/vp/22096-1-9.html',
+        'url': 'https://www.yhdmp.net/vp/22096-1-9.html',
         'info_dict': {
             'id': '22096-1-9',
             'ext': 'mp4',
