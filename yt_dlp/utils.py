@@ -2057,6 +2057,9 @@ def get_windows_version():
 def write_string(s, out=None, encoding=None):
     assert isinstance(s, str)
     out = out or sys.stderr
+    # `sys.stderr` might be `None` (Ref: https://github.com/pyinstaller/pyinstaller/pull/7217)
+    if not out:
+        return
 
     if compat_os_name == 'nt' and supports_terminal_sequences(out):
         s = re.sub(r'([\r\n]+)', r' \1', s)
@@ -3363,7 +3366,7 @@ def strip_jsonp(code):
 
 def js_to_json(code, vars={}, *, strict=False):
     # vars is a dict of var, val pairs to substitute
-    STRING_QUOTES = '\'"'
+    STRING_QUOTES = '\'"`'
     STRING_RE = '|'.join(rf'{q}(?:\\.|[^\\{q}])*{q}' for q in STRING_QUOTES)
     COMMENT_RE = r'/\*(?:(?!\*/).)*?\*/|//[^\n]*\n'
     SKIP_RE = fr'\s*(?:{COMMENT_RE})?\s*'
@@ -3381,6 +3384,12 @@ def js_to_json(code, vars={}, *, strict=False):
                 else '' if escape == '\n'
                 else escape)
 
+    def template_substitute(match):
+        evaluated = js_to_json(match.group(1), vars, strict=strict)
+        if evaluated[0] == '"':
+            return json.loads(evaluated)
+        return evaluated
+
     def fix_kv(m):
         v = m.group(0)
         if v in ('true', 'false', 'null'):
@@ -3391,7 +3400,8 @@ def js_to_json(code, vars={}, *, strict=False):
             return ''
 
         if v[0] in STRING_QUOTES:
-            escaped = re.sub(r'(?s)(")|\\(.)', process_escape, v[1:-1])
+            v = re.sub(r'(?s)\${([^}]+)}', template_substitute, v[1:-1]) if v[0] == '`' else v[1:-1]
+            escaped = re.sub(r'(?s)(")|\\(.)', process_escape, v)
             return f'"{escaped}"'
 
         for regex, base in INTEGER_TABLE:
