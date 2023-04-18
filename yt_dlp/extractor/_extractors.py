@@ -1788,6 +1788,7 @@ from .spike import (
     BellatorIE,
     ParamountNetworkIE,
 )
+from .stageplus import StagePlusVODConcertIE
 from .startrek import StarTrekIE
 from .stitcher import (
     StitcherIE,
@@ -2297,6 +2298,7 @@ from .weibo import (
     WeiboMobileIE
 )
 from .weiqitv import WeiqiTVIE
+from .whyp import WhypIE
 from .wikimedia import WikimediaIE
 from .willow import WillowIE
 from .wimtv import WimTVIE
