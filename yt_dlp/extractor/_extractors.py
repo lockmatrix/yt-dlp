@@ -241,6 +241,7 @@ from .bilibili import (
     BiliIntlIE,
     BiliIntlSeriesIE,
     BiliLiveIE,
+    BilibiliCheeseIE,
 )
 from .biobiochiletv import BioBioChileTVIE
 from .bitchute import (
@@ -1738,6 +1739,7 @@ from .saitosan import SaitosanIE
 from .samplefocus import SampleFocusIE
 from .sapo import SapoIE
 from .savefrom import SaveFromIE
+from .kudm import SbdmIE, GqdmIE
 from .sbs import SBSIE
 from .sbscokr import (
     SBSCoKrIE,
