@@ -29,6 +29,8 @@ class YhdmpIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
+        video_src_channel = video_id.split("-")[1]
+
         # yhdmp obfuscate video info, use headless browner to run it
 
         chrome_wait_timeout = self.get_param('selenium_browner_timeout', 20)
@@ -105,14 +107,17 @@ class YhdmpIE(InfoExtractor):
                     'formats': [{'url': video_url, **fmt_info}],
                 }
             if '.m3u8' in video_url:
+                fmt = {
+                    'url': video_url,
+                    'ext': 'mp4',
+                    **fmt_info
+                }
+                if video_src_channel in ['1', '3']:
+                    fmt['protocol'] = 'm3u8_fake_header'
+
                 return {
                     **info_dict,
-                    'formats': [{
-                        'url': video_url,
-                        'protocol': 'm3u8_fake_header',
-                        'ext': 'mp4',
-                        **fmt_info
-                        }]
+                    'formats': [fmt]
                 }
             if '?dpvt=' in video_url:
                 return {
