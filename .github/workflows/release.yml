@@ -52,62 +52,6 @@ jobs:
         if: vars.PUSH_VERSION_COMMIT != ''
         run: git push origin ${{ github.event.ref }}
 
-  publish_pypi_homebrew:
-    needs: prepare
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      - name: Install Requirements
-        run: |
-          sudo apt-get -y install pandoc man
-          python -m pip install -U pip setuptools wheel twine
-          python -m pip install -U -r requirements.txt
-
-      - name: Prepare
-        run: |
-          python devscripts/update-version.py ${{ needs.prepare.outputs.version }}
-          python devscripts/make_lazy_extractors.py
-
-      - name: Build and publish on PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        if: env.TWINE_PASSWORD != ''
-        run: |
-          rm -rf dist/*
-          make pypi-files
-          python devscripts/set-variant.py pip -M "You installed yt-dlp with pip or using the wheel from PyPi; Use that to update"
-          python setup.py sdist bdist_wheel
-          twine upload dist/*
-
-      - name: Checkout Homebrew repository
-        env:
-          BREW_TOKEN: ${{ secrets.BREW_TOKEN }}
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        if: env.BREW_TOKEN != '' && env.PYPI_TOKEN != ''
-        uses: actions/checkout@v3
-        with:
-          repository: yt-dlp/homebrew-taps
-          path: taps
-          ssh-key: ${{ secrets.BREW_TOKEN }}
-
-      - name: Update Homebrew Formulae
-        env:
-          BREW_TOKEN: ${{ secrets.BREW_TOKEN }}
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        if: env.BREW_TOKEN != '' && env.PYPI_TOKEN != ''
-        run: |
-          python devscripts/update-formulae.py taps/Formula/yt-dlp.rb "${{ needs.prepare.outputs.version }}"
-          git -C taps/ config user.name github-actions
-          git -C taps/ config user.email github-actions@example.com
-          git -C taps/ commit -am 'yt-dlp: ${{ needs.prepare.outputs.version }}'
-          git -C taps/ push
-
   build:
     needs: prepare
     uses: ./.github/workflows/build.yml
