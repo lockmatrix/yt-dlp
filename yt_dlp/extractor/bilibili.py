@@ -1,6 +1,7 @@
 import base64
 import functools
 import itertools
+import json
 import math
 import urllib.error
 import urllib.parse
@@ -739,6 +740,13 @@ class BilibiliSpaceBaseIE(InfoExtractor):
 
         return metadata, paged_list
 
+    def _handle_broken_json(self, s):
+        if s.startswith('{"code":-509'):
+            start = s.find('}')
+            start = start + 1
+            s = s[start:]
+        return json.loads(s)
+
 
 class BilibiliSpaceVideoIE(BilibiliSpaceBaseIE):
     _VALID_URL = r'https?://space\.bilibili\.com/(?P<id>\d+)(?P<video>/video)?/?(?:[?#]|$)'
@@ -758,9 +766,10 @@ class BilibiliSpaceVideoIE(BilibiliSpaceBaseIE):
 
         def fetch_page(page_idx):
             try:
-                response = self._download_json('https://api.bilibili.com/x/space/arc/search',
+                response = self._download_webpage('https://api.bilibili.com/x/space/arc/search',
                                                playlist_id, note=f'Downloading page {page_idx}',
                                                query={'mid': playlist_id, 'pn': page_idx + 1, 'jsonp': 'jsonp'})
+                response = self._handle_broken_json(response)
             except ExtractorError as e:
                 if isinstance(e.cause, urllib.error.HTTPError) and e.cause.code == 412:
                     raise ExtractorError(
