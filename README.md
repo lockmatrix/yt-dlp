@@ -630,6 +630,9 @@ If you fork the project on GitHub, you can run your fork's [build workflow](.git
                                     option multiple times to give different
                                     arguments to different downloaders (Alias:
                                     --external-downloader-args)
+    --selenium-browner-timeout NUMBER
+    --selenium-browner-no-headless  
+    --selenium-browner-headless     
 
 ## Filesystem Options:
     -a, --batch-file FILE           File containing URLs to download ("-" for
