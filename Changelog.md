@@ -4,6 +4,19 @@
 # To create a release, dispatch the https://github.com/yt-dlp/yt-dlp/actions/workflows/release.yml workflow on master
 -->
 
+### 2023.10.04
+
+#### Core changes
+- [add fix_fps; add flv support](https://github.com/yt-dlp/yt-dlp/commit/8eb69d691ac7d6d1cf2630f3bc834ec9f2a034bf) by [pukkandan](https://github.com/pukkandan)
+- [add selenium](https://github.com/yt-dlp/yt-dlp/commit/dd66463f769205f31308d8cfa24763f9adcd04c0) by [pukkandan](https://github.com/pukkandan)
+- [fix mac](https://github.com/yt-dlp/yt-dlp/commit/cdf7786a33f5d17741ff3b24a53efa40a8b65828) by [pukkandan](https://github.com/pukkandan)
+- [update hlsnative_fake_header](https://github.com/yt-dlp/yt-dlp/commit/83949cbc931d7b4976874d1f9e7c5bc3158a48fd) by [pukkandan](https://github.com/pukkandan)
+- [use latest 3.10 python version](https://github.com/yt-dlp/yt-dlp/commit/3748af2e16c2ce27740613a48306fc4f422930be) by [pukkandan](https://github.com/pukkandan)
+
+#### Extractor changes
+- **xhamster**: user: [Support creator urls](https://github.com/yt-dlp/yt-dlp/commit/cc8d8441524ec3442d7c0d3f8f33f15b66aa06f3) ([#8232](https://github.com/yt-dlp/yt-dlp/issues/8232)) by [Grub4K](https://github.com/Grub4K)
+- **youtube**: [Raise a warning for `Incomplete Data` instead of an error](https://github.com/yt-dlp/yt-dlp/commit/eb5bdbfa70126c7d5355cc0954b63720522e462c) ([#8238](https://github.com/yt-dlp/yt-dlp/issues/8238)) by [coletdjnz](https://github.com/coletdjnz)
+
 ### 2023.09.24
 
 #### Important changes
