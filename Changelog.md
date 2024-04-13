@@ -4,6 +4,13 @@
 # To create a release, dispatch the https://github.com/yt-dlp/yt-dlp/actions/workflows/release.yml workflow on master
 -->
 
+### 2024.04.13.041929
+
+#### Core changes
+- [add selenium, hlsnative_fake_header](https://github.com/yt-dlp/yt-dlp/commit/5ee4fb4b30fd89bf7d0771ee03a5932ce9229604) by [pukkandan](https://github.com/pukkandan)
+- [update Pyinstaller](https://github.com/yt-dlp/yt-dlp/commit/2a0315ef8fdc27382da6d147902bc5fbbf85d057) by [pukkandan](https://github.com/pukkandan)
+- [use python 3.11](https://github.com/yt-dlp/yt-dlp/commit/97cee28c1382b5e32a6f5b6718659133af23a69f) by [pukkandan](https://github.com/pukkandan)
+
 ### 2024.04.09
 
 #### Important changes
