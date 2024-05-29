@@ -4,6 +4,16 @@
 # To create a release, dispatch the https://github.com/yt-dlp/yt-dlp/actions/workflows/release.yml workflow on master
 -->
 
+### 2024.05.29.111436
+
+#### Core changes
+- [add selenium, hlsnative_fake_header](https://github.com/yt-dlp/yt-dlp/commit/45c900fcad6424c404e7edbc492d5ddde10ad584) by [pukkandan](https://github.com/pukkandan)
+- [update Pyinstaller](https://github.com/yt-dlp/yt-dlp/commit/716438427100fde57ee4f17e078ff6a0f8d7b106) by [pukkandan](https://github.com/pukkandan)
+- [use python 3.11](https://github.com/yt-dlp/yt-dlp/commit/39fed4feb7786c9007964a9f92cf532a64cd0766) by [pukkandan](https://github.com/pukkandan)
+
+#### Extractor changes
+- **tubitv**: [Fix extractor](https://github.com/yt-dlp/yt-dlp/commit/bef9a9e5361fd7a72e21d0f1a8c8afb70d89e8c5) ([#9975](https://github.com/yt-dlp/yt-dlp/issues/9975)) by [chilinux](https://github.com/chilinux)
+
 ### 2024.05.27
 
 #### Extractor changes
