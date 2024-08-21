@@ -540,6 +540,7 @@
  - **Goshgay**
  - **GoToStage**
  - **GPUTechConf**
+ - **Gqdm**
  - **Graspop**
  - **Gronkh**
  - **gronkh:feed**
@@ -1274,6 +1275,7 @@
  - **SampleFocus**
  - **Sangiin**: 参議院インターネット審議中継 (archive)
  - **Sapo**: SAPO Vídeos
+ - **Sbdm**
  - **SBS**: sbs.com.au
  - **sbs.co.kr**
  - **sbs.co.kr:allvod_program**
