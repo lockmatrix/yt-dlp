@@ -540,6 +540,7 @@
  - **Goshgay**
  - **GoToStage**
  - **GPUTechConf**
+ - **Gqdm**
  - **Graspop**
  - **Gronkh**
  - **gronkh:feed**
@@ -660,6 +661,7 @@
  - **kick:vod**
  - **Kicker**
  - **KickStarter**
+ - **Kika**: KiKA.de
  - **kinja:embed**
  - **KinoPoisk**
  - **Kommunetv**
@@ -756,7 +758,7 @@
  - **Masters**
  - **MatchTV**
  - **MBN**: mbn.co.kr (매일방송)
- - **MDR**: MDR.DE and KiKA
+ - **MDR**: MDR.DE
  - **MedalTV**
  - **media.ccc.de**
  - **media.ccc.de:lists**
@@ -1274,6 +1276,7 @@
  - **SampleFocus**
  - **Sangiin**: 参議院インターネット審議中継 (archive)
  - **Sapo**: SAPO Vídeos
+ - **Sbdm**
  - **SBS**: sbs.com.au
  - **sbs.co.kr**
  - **sbs.co.kr:allvod_program**
@@ -1608,6 +1611,7 @@
  - **videomore:season**
  - **videomore:video**
  - **VideoPress**
+ - **Vidflex**
  - **Vidio**: [*vidio*](## "netrc machine")
  - **VidioLive**: [*vidio*](## "netrc machine")
  - **VidioPremier**: [*vidio*](## "netrc machine")
