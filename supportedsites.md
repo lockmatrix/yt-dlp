@@ -247,7 +247,7 @@
  - **cbsnews:livevideo**: CBS News Live Videos
  - **cbssports**: (**Currently broken**)
  - **cbssports:embed**: (**Currently broken**)
- - **CCMA**
+ - **CCMA**: 3Cat, TV3 and Catalunya Ràdio
  - **CCTV**: 央视网
  - **CDA**: [*cdapl*](## "netrc machine")
  - **CDAFolder**
@@ -280,8 +280,6 @@
  - **cmt.com**: (**Currently broken**)
  - **CNBCVideo**
  - **CNN**
- - **CNNArticle**
- - **CNNBlogs**
  - **CNNIndonesia**
  - **ComedyCentral**
  - **ComedyCentralTV**
@@ -539,6 +537,7 @@
  - **Goshgay**
  - **GoToStage**
  - **GPUTechConf**
+ - **Gqdm**
  - **Graspop**
  - **Gronkh**
  - **gronkh:feed**
@@ -685,9 +684,9 @@
  - **LastFMPlaylist**
  - **LastFMUser**
  - **LaXarxaMes**: [*laxarxames*](## "netrc machine")
- - **lbry**
- - **lbry:channel**
- - **lbry:playlist**
+ - **lbry**: odysee.com
+ - **lbry:channel**: odysee.com channels
+ - **lbry:playlist**: odysee.com playlists
  - **LCI**
  - **Lcp**
  - **LcpPlay**
@@ -1275,6 +1274,7 @@
  - **SampleFocus**
  - **Sangiin**: 参議院インターネット審議中継 (archive)
  - **Sapo**: SAPO Vídeos
+ - **Sbdm**
  - **SBS**: sbs.com.au
  - **sbs.co.kr**
  - **sbs.co.kr:allvod_program**
@@ -1743,6 +1743,7 @@
  - **XHamsterEmbed**
  - **XHamsterUser**
  - **XiaoHongShu**: 小红书
+ - **XiaoYuZhou**: 小宇宙
  - **ximalaya**: 喜马拉雅FM
  - **ximalaya:album**: 喜马拉雅FM 专辑
  - **Xinpianchang**: 新片场
