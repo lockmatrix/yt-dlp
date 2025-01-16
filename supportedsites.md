@@ -542,6 +542,7 @@
  - **Goshgay**
  - **GoToStage**
  - **GPUTechConf**
+ - **Gqdm**
  - **Graspop**
  - **Gronkh**
  - **gronkh:feed**
@@ -1277,6 +1278,7 @@
  - **SampleFocus**
  - **Sangiin**: 参議院インターネット審議中継 (archive)
  - **Sapo**: SAPO Vídeos
+ - **Sbdm**
  - **SBS**: sbs.com.au
  - **sbs.co.kr**
  - **sbs.co.kr:allvod_program**
@@ -1741,6 +1743,7 @@
  - **XHamsterEmbed**
  - **XHamsterUser**
  - **XiaoHongShu**: 小红书
+ - **XiaoYuZhou**: 小宇宙
  - **ximalaya**: 喜马拉雅FM
  - **ximalaya:album**: 喜马拉雅FM 专辑
  - **Xinpianchang**: 新片场

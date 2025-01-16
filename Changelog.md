@@ -4,6 +4,16 @@
 # To create a release, dispatch the https://github.com/yt-dlp/yt-dlp/actions/workflows/release.yml workflow on master
 -->
 
+### 2025.01.16.114423
+
+#### Core changes
+- [custom](https://github.com/yt-dlp/yt-dlp/commit/0d43ea6b7f0ab5fbc516862f36f6b7a1140ce081) by [pukkandan](https://github.com/pukkandan)
+- [py 3.12](https://github.com/yt-dlp/yt-dlp/commit/76ab230dfb0f086138fe1f6ac6a7e5905252d7db) by [pukkandan](https://github.com/pukkandan)
+- [py 3.12 fix](https://github.com/yt-dlp/yt-dlp/commit/a82af4e35f9eb5473e4f319ff5f063f802596e1e) by [pukkandan](https://github.com/pukkandan)
+
+#### Extractor changes
+- **dropout**: [Fix extraction](https://github.com/yt-dlp/yt-dlp/commit/164368610456e2d96b279f8b120dea08f7b1d74f) ([#12102](https://github.com/yt-dlp/yt-dlp/issues/12102)) by [bashonly](https://github.com/bashonly)
+
 ### 2025.01.15
 
 #### Extractor changes
