@@ -4,6 +4,19 @@
 # To create a release, dispatch the https://github.com/yt-dlp/yt-dlp/actions/workflows/release.yml workflow on master
 -->
 
+### 2025.05.24.103454
+
+#### Core changes
+- [custom](https://github.com/yt-dlp/yt-dlp/commit/6e0c1e55d072bcc6174ff15133ae0594cd9d3990) by [pukkandan](https://github.com/pukkandan)
+
+#### Extractor changes
+- **patreon**: [Fix m3u8 formats extraction](https://github.com/yt-dlp/yt-dlp/commit/e0d6c0822930f6e63f574d46d946a58b73ecd10c) ([#13266](https://github.com/yt-dlp/yt-dlp/issues/13266)) by [bashonly](https://github.com/bashonly) (With fixes in [1a8a03e](https://github.com/yt-dlp/yt-dlp/commit/1a8a03ea8d827107319a18076ee3505090667c5a))
+- **podchaser**: [Fix extractor](https://github.com/yt-dlp/yt-dlp/commit/538eb305673c26bff6a2b12f1c96375fe02ce41a) ([#13271](https://github.com/yt-dlp/yt-dlp/issues/13271)) by [bashonly](https://github.com/bashonly)
+- **toutiao**: [Add extractor](https://github.com/yt-dlp/yt-dlp/commit/f8051e3a61686c5db1de5f5746366ecfbc3ad20c) ([#13246](https://github.com/yt-dlp/yt-dlp/issues/13246)) by [doe1080](https://github.com/doe1080)
+- **twitcasting**: [Fix password-protected livestream support](https://github.com/yt-dlp/yt-dlp/commit/52f9729c9a92ad4656d746ff0b1acecb87b3e96d) ([#13097](https://github.com/yt-dlp/yt-dlp/issues/13097)) by [bashonly](https://github.com/bashonly)
+- **twitter**: broadcast: [Support events URLs](https://github.com/yt-dlp/yt-dlp/commit/7794374de8afb20499b023107e2abfd4e6b93ee4) ([#13248](https://github.com/yt-dlp/yt-dlp/issues/13248)) by [doe1080](https://github.com/doe1080)
+- **youtube**: [Fix automatic captions for some client combinations](https://github.com/yt-dlp/yt-dlp/commit/53ea743a9c158f8ca2d75a09ca44ba68606042d8) ([#13268](https://github.com/yt-dlp/yt-dlp/issues/13268)) by [bashonly](https://github.com/bashonly)
+
 ### 2025.05.22
 
 #### Core changes
