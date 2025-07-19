@@ -288,10 +288,10 @@ If you fork the project on GitHub, you can run your fork's [build workflow](.git
     --no-update                     Do not check for updates (default)
     --update-to [CHANNEL]@[TAG]     Upgrade/downgrade to a specific version.
                                     CHANNEL can be a repository as well. CHANNEL
-                                    and TAG default to "stable" and "latest"
-                                    respectively if omitted; See "UPDATE" for
-                                    details. Supported channels: stable,
-                                    nightly, master
+                                    and TAG default to "lockmatrix/yt-dlp" and
+                                    "latest" respectively if omitted; See
+                                    "UPDATE" for details. Supported channels:
+                                    stable, nightly, master
     -i, --ignore-errors             Ignore download and postprocessing errors.
                                     The download will be considered successful
                                     even if the postprocessing fails
@@ -593,6 +593,9 @@ If you fork the project on GitHub, you can run your fork's [build workflow](.git
                                     option multiple times to give different
                                     arguments to different downloaders (Alias:
                                     --external-downloader-args)
+    --selenium-browner-timeout NUMBER
+    --selenium-browner-no-headless  
+    --selenium-browner-headless     
 
 ## Filesystem Options:
     -a, --batch-file FILE           File containing URLs to download ("-" for
@@ -639,9 +642,9 @@ If you fork the project on GitHub, you can run your fork's [build workflow](.git
     --no-part                       Do not use .part files - write directly into
                                     output file
     --mtime                         Use the Last-modified header to set the file
-                                    modification time (default)
+                                    modification time
     --no-mtime                      Do not use the Last-modified header to set
-                                    the file modification time
+                                    the file modification time (default)
     --write-description             Write video description to a .description file
     --no-write-description          Do not write video description (default)
     --write-info-json               Write video metadata to a .info.json file
