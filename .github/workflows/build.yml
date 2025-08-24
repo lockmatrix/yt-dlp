@@ -70,7 +70,7 @@ on:
         default: true
         type: boolean
       windows:
-        description: yt-dlp.exe, yt-dlp_win.zip, yt-dlp_x86.exe, yt-dlp_win_x86.zip, yt-dlp_arm64.exe, yt-dlp_win_arm64.zip
+        description: yt-dlp.exe, yt-dlp_win.zip
         default: true
         type: boolean
 
@@ -418,7 +418,7 @@ jobs:
         include:
         - arch: 'x64'
           runner: windows-2025
-          python_version: '3.10'
+          python_version: '3.12'
           platform_tag: win_amd64
           pyi_version: '6.16.0'
           pyi_tag: '2025.09.13.221251'
