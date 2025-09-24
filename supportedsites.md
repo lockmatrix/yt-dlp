@@ -1745,6 +1745,7 @@ The only reliable way to check if a site is supported is to try it.
  - **XHamsterEmbed**
  - **XHamsterUser**
  - **XiaoHongShu**: 小红书
+ - **XiaoYuZhou**: 小宇宙
  - **ximalaya**: 喜马拉雅FM
  - **ximalaya:album**: 喜马拉雅FM 专辑
  - **Xinpianchang**: 新片场
