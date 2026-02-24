@@ -35,3 +35,4 @@ excludedimports = ['youtube_dl', 'youtube_dlc', 'test', 'ytdlp_plugins', 'devscr
 
 datas = collect_data_files('curl_cffi', includes=['cacert.pem'])
 datas += collect_data_files('yt_dlp_ejs', includes=['**/*.js'])
+datas += collect_data_files('yt_dlp', subdir='extractor/youtube/jsc/_builtin/vendor', includes=['*.js'])

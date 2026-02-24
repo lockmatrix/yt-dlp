@@ -20,6 +20,7 @@ py"${PYTHON_VERSION}" -m venv /yt-dlp-build-venv
 source /yt-dlp-build-venv/bin/activate
 # Inside the venv we can use python instead of py3.13 or py3.14 etc
 python -m devscripts.install_deps "${INCLUDES[@]}"
+python -m pip install -U yt-dlp-ejs
 python -m devscripts.make_lazy_extractors
 python devscripts/update-version.py -c "${CHANNEL}" -r "${ORIGIN}" "${VERSION}"
 

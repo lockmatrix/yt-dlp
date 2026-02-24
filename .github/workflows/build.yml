@@ -209,6 +209,7 @@ jobs:
       - name: Install Requirements
         run: |
           sudo apt -y install zip pandoc man sed
+          python -m pip install -U yt-dlp-ejs
 
       - name: Prepare
         run: |
@@ -329,6 +330,7 @@ jobs:
           python3 -m venv ~/yt-dlp-build-venv
           source ~/yt-dlp-build-venv/bin/activate
           python3 devscripts/install_deps.py --omit-default --include-extra build
+          python3 -m pip install -U yt-dlp-ejs
           python3 devscripts/install_deps.py --print --include-extra pyinstaller > requirements.txt
           # We need to ignore wheels otherwise we break universal2 builds
           python3 -m pip install -U --no-binary :all: -r requirements.txt
@@ -461,6 +463,7 @@ jobs:
           python -m pip download -d /pyi-wheels --no-deps --require-hashes "pyinstaller@${Env:PYI_URL}#sha256=${Env:PYI_HASH}"
           python -m pip install --force-reinstall -U "/pyi-wheels/${Env:PYI_WHEEL}"
           python devscripts/install_deps.py --omit-default --include-extra build
+          python -m pip install -U yt-dlp-ejs
           if ("${Env:ARCH}" -eq "x86") {
             python devscripts/install_deps.py
           } else {
