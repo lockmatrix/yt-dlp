@@ -70,7 +70,7 @@ on:
         default: true
         type: boolean
       windows:
-        description: yt-dlp.exe, yt-dlp_win.zip, yt-dlp_x86.exe, yt-dlp_win_x86.zip, yt-dlp_arm64.exe, yt-dlp_win_arm64.zip
+        description: yt-dlp.exe, yt-dlp_win.zip
         default: true
         type: boolean
 
@@ -207,6 +207,7 @@ jobs:
       - name: Install Requirements
         run: |
           sudo apt -y install zip pandoc man sed
+          python -m pip install -U yt-dlp-ejs
 
       - name: Prepare
         run: |
@@ -423,18 +424,11 @@ jobs:
         include:
         - arch: 'x64'
           runner: windows-2025
-          python_version: '3.10'
-        - arch: 'x86'
-          runner: windows-2025
-          python_version: '3.10'
-        - arch: 'arm64'
-          runner: windows-11-arm
-          python_version: '3.13'  # arm64 only has Python >= 3.11 available
+          python_version: '3.13'
     env:
       CHANNEL: ${{ inputs.channel }}
       ORIGIN: ${{ needs.process.outputs.origin }}
       VERSION: ${{ needs.process.outputs.version }}
-      SUFFIX: ${{ (matrix.arch != 'x64' && format('_{0}', matrix.arch)) || '' }}
       UPDATE_TO: yt-dlp/yt-dlp@2025.09.05
 
     steps:
@@ -480,7 +474,7 @@ jobs:
           /yt-dlp-build-venv/Scripts/Activate.ps1
           python -m bundle.pyinstaller
           python -m bundle.pyinstaller --onedir
-          Compress-Archive -Path ./dist/yt-dlp${Env:SUFFIX}/* -DestinationPath ./dist/yt-dlp_win${Env:SUFFIX}.zip
+          Compress-Archive -Path ./dist/yt-dlp/* -DestinationPath ./dist/yt-dlp_win.zip
 
       - name: Verify --update-to
         if: vars.UPDATE_TO_VERIFICATION
@@ -488,7 +482,7 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $PSNativeCommandUseErrorActionPreference = $true
-          $name = "yt-dlp${Env:SUFFIX}"
+          $name = "yt-dlp"
           Copy-Item "./dist/${name}.exe" "./dist/${name}_downgraded.exe"
           $version = & "./dist/${name}.exe" --version
           & "./dist/${name}_downgraded.exe" -v --update-to "${Env:UPDATE_TO}"
@@ -502,8 +496,8 @@ jobs:
         with:
           name: build-bin-${{ github.job }}-${{ matrix.arch }}
           path: |
-            dist/yt-dlp${{ env.SUFFIX }}.exe
-            dist/yt-dlp_win${{ env.SUFFIX }}.zip
+            dist/yt-dlp.exe
+            dist/yt-dlp_win.zip
           compression-level: 0
 
   meta_files:
