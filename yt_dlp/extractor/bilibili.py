@@ -2622,6 +2622,12 @@ class BiliLiveIE(InfoExtractor):
             raise ExtractorError(api_result.get('message') or 'Unable to download JSON metadata')
         return api_result.get('data') or {}
 
+    _FORMAT_NAME_TO_EXT = {
+        'fmp4': 'mp4',
+        'ts': 'ts',
+        'flv': 'flv',
+    }
+
     def _parse_formats(self, qn, fmt):
         for codec in fmt.get('codec') or []:
             if codec.get('current_qn') != qn:
@@ -2629,7 +2635,7 @@ class BiliLiveIE(InfoExtractor):
             for url_info in codec['url_info']:
                 yield {
                     'url': f'{url_info["host"]}{codec["base_url"]}{url_info["extra"]}',
-                    'ext': fmt.get('format_name'),
+                    'ext': self._FORMAT_NAME_TO_EXT.get(fmt.get('format_name'), fmt.get('format_name')),
                     'vcodec': codec.get('codec_name'),
                     'quality': self._quality(qn),
                     **self._FORMATS[qn],
