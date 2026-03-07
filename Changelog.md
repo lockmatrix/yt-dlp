@@ -4,6 +4,19 @@
 # To create a release, dispatch the https://github.com/yt-dlp/yt-dlp/actions/workflows/release.yml workflow on master
 -->
 
+### 2026.03.07.123836
+
+#### Core changes
+- [Add custom features: xiaoyuzhou extractor, HLS fake header, selenium container](https://github.com/yt-dlp/yt-dlp/commit/0f3ac4027444c36c7a8758e36e48f5fa8111ecaf) by [pukkandan](https://github.com/pukkandan)
+
+#### Extractor changes
+- **bililive**: [Fix unsafe extension error for fmp4 format](https://github.com/yt-dlp/yt-dlp/commit/31d76e6024167c16641458a950b7dd9194d46c08) by [pukkandan](https://github.com/pukkandan)
+
+#### Misc. changes
+- **build**
+    - [Cleanup workflows, upgrade Python version and remove Windows x86/arm64 targets](https://github.com/yt-dlp/yt-dlp/commit/d110eedd907f3a8578612012ec2b43a687824661) by [pukkandan](https://github.com/pukkandan)
+    - [Fix n challenge solving: enable node runtime and install yt-dlp-ejs](https://github.com/yt-dlp/yt-dlp/commit/6ac4f001b7d2fd55bb98c9390286a8d9e35112cb) by [pukkandan](https://github.com/pukkandan)
+
 ### 2026.03.03
 
 #### Extractor changes

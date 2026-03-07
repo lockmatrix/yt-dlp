@@ -314,10 +314,10 @@ Tip: Use `CTRL`+`F` (or `Command`+`F`)  to search by keywords
     --no-update                     Do not check for updates (default)
     --update-to [CHANNEL]@[TAG]     Upgrade/downgrade to a specific version.
                                     CHANNEL can be a repository as well. CHANNEL
-                                    and TAG default to "stable" and "latest"
-                                    respectively if omitted; See "UPDATE" for
-                                    details. Supported channels: stable,
-                                    nightly, master
+                                    and TAG default to "lockmatrix/yt-dlp" and
+                                    "latest" respectively if omitted; See
+                                    "UPDATE" for details. Supported channels:
+                                    stable, nightly, master
     -i, --ignore-errors             Ignore download and postprocessing errors.
                                     The download will be considered successful
                                     even if the postprocessing fails
@@ -375,13 +375,13 @@ Tip: Use `CTRL`+`F` (or `Command`+`F`)  to search by keywords
                                     used multiple times to enable multiple
                                     runtimes. Supported runtimes are (in order
                                     of priority, from highest to lowest): deno,
-                                    node, quickjs, bun. Only "deno" is enabled
-                                    by default. The highest priority runtime
-                                    that is both enabled and available will be
-                                    used. In order to use a lower priority
-                                    runtime when "deno" is available, --no-js-
-                                    runtimes needs to be passed before enabling
-                                    other runtimes
+                                    node, quickjs, bun. "deno" and "node" are
+                                    enabled by default. The highest priority
+                                    runtime that is both enabled and available
+                                    will be used. In order to use a lower
+                                    priority runtime when "deno" is available,
+                                    --no-js-runtimes needs to be passed before
+                                    enabling other runtimes
     --no-js-runtimes                Clear JavaScript runtimes to enable,
                                     including defaults and those provided by
                                     previous --js-runtimes
@@ -647,6 +647,9 @@ Tip: Use `CTRL`+`F` (or `Command`+`F`)  to search by keywords
                                     option multiple times to give different
                                     arguments to different downloaders (Alias:
                                     --external-downloader-args)
+    --selenium-browner-timeout NUMBER
+    --selenium-browner-no-headless  
+    --selenium-browner-headless     
 
 ## Filesystem Options:
     -a, --batch-file FILE           File containing URLs to download ("-" for
