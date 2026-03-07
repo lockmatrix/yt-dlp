@@ -70,7 +70,7 @@ on:
         default: true
         type: boolean
       windows:
-        description: yt-dlp.exe, yt-dlp_win.zip, yt-dlp_x86.exe, yt-dlp_win_x86.zip, yt-dlp_arm64.exe, yt-dlp_win_arm64.zip
+        description: yt-dlp.exe, yt-dlp_win.zip
         default: true
         type: boolean
 
@@ -407,30 +407,15 @@ jobs:
         include:
         - arch: 'x64'
           runner: windows-2025
-          python_version: '3.10'
+          python_version: '3.12'
           platform_tag: win_amd64
           pyi_version: '6.18.0'
           pyi_tag: '2026.01.29.160356'
           pyi_hash: bb9cd0b0b233e4d031a295211cb8aa7c7f8b3c12ff33f1d57a40849ab4d3cf42
-        - arch: 'x86'
-          runner: windows-2025
-          python_version: '3.10'
-          platform_tag: win32
-          pyi_version: '6.18.0'
-          pyi_tag: '2026.01.29.160356'
-          pyi_hash: aa8f260e735d94f1e2e1aac42e322f508eb54d0433de803c2998c337f72045e4
-        - arch: 'arm64'
-          runner: windows-11-arm
-          python_version: '3.13'  # arm64 only has Python >= 3.11 available
-          platform_tag: win_arm64
-          pyi_version: '6.18.0'
-          pyi_tag: '2026.01.29.160356'
-          pyi_hash: 4bbca67d0cdfa860d92ac9cc7e4c2586fd393d1e814e3f1375b8c62d5cfb6771
     env:
       CHANNEL: ${{ inputs.channel }}
       ORIGIN: ${{ needs.process.outputs.origin }}
       VERSION: ${{ needs.process.outputs.version }}
-      SUFFIX: ${{ (matrix.arch != 'x64' && format('_{0}', matrix.arch)) || '' }}
       UPDATE_TO: yt-dlp/yt-dlp@2025.09.05
       BASE_CACHE_KEY: cache-reqs-${{ github.job }}_${{ matrix.arch }}-${{ matrix.python_version }}
       PYI_REPO: https://github.com/yt-dlp/Pyinstaller-Builds
@@ -448,7 +433,6 @@ jobs:
 
       - name: Install Requirements
         env:
-          ARCH: ${{ matrix.arch }}
           PYI_URL: ${{ env.PYI_REPO }}/releases/download/${{ matrix.pyi_tag }}/${{ env.PYI_WHEEL }}
           PYI_HASH: ${{ matrix.pyi_hash }}
         shell: pwsh
@@ -464,11 +448,7 @@ jobs:
           python -m pip install --force-reinstall -U "/pyi-wheels/${Env:PYI_WHEEL}"
           python devscripts/install_deps.py --omit-default --include-extra build
           python -m pip install -U yt-dlp-ejs
-          if ("${Env:ARCH}" -eq "x86") {
-            python devscripts/install_deps.py
-          } else {
-            python devscripts/install_deps.py --include-extra build-curl-cffi
-          }
+          python devscripts/install_deps.py --include-extra build-curl-cffi
 
       - name: Prepare
         shell: pwsh
@@ -486,7 +466,7 @@ jobs:
           /yt-dlp-build-venv/Scripts/Activate.ps1
           python -m bundle.pyinstaller
           python -m bundle.pyinstaller --onedir
-          Compress-Archive -Path ./dist/yt-dlp${Env:SUFFIX}/* -DestinationPath ./dist/yt-dlp_win${Env:SUFFIX}.zip
+          Compress-Archive -Path ./dist/yt-dlp/* -DestinationPath ./dist/yt-dlp_win.zip
 
       - name: Verify --update-to
         if: vars.UPDATE_TO_VERIFICATION
@@ -494,7 +474,7 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $PSNativeCommandUseErrorActionPreference = $true
-          $name = "yt-dlp${Env:SUFFIX}"
+          $name = "yt-dlp"
           Copy-Item "./dist/${name}.exe" "./dist/${name}_downgraded.exe"
           $version = & "./dist/${name}.exe" --version
           & "./dist/${name}_downgraded.exe" -v --update-to "${Env:UPDATE_TO}"
@@ -508,8 +488,8 @@ jobs:
         with:
           name: build-bin-${{ github.job }}-${{ matrix.arch }}
           path: |
-            dist/yt-dlp${{ env.SUFFIX }}.exe
-            dist/yt-dlp_win${{ env.SUFFIX }}.zip
+            dist/yt-dlp.exe
+            dist/yt-dlp_win.zip
           compression-level: 0
 
   meta_files:
