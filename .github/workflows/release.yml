@@ -160,6 +160,7 @@ jobs:
       version: ${{ needs.prepare.outputs.version }}
       channel: ${{ needs.prepare.outputs.channel }}
       origin: ${{ needs.prepare.outputs.target_repo }}
+      unix: false
       linux_armv7l: ${{ inputs.linux_armv7l }}
     secrets:
       GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}

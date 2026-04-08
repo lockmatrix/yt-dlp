@@ -51,7 +51,7 @@ on:
         type: string
       unix:
         description: yt-dlp, yt-dlp.tar.gz
-        default: true
+        default: false
         type: boolean
       linux:
         description: yt-dlp_linux, yt-dlp_linux.zip, yt-dlp_linux_aarch64, yt-dlp_linux_aarch64.zip
