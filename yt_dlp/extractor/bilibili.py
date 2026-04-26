@@ -47,7 +47,12 @@ from ..utils import (
 
 
 class BilibiliBaseIE(InfoExtractor):
-    _HEADERS = {'Referer': 'https://www.bilibili.com/'}
+    _HEADERS = {
+        # Origin is required by api.bilibili.com risk control; without it the
+        # wbi/playurl endpoint returns 412 even with a valid wbi signature.
+        'Origin': 'https://www.bilibili.com',
+        'Referer': 'https://www.bilibili.com/',
+    }
     _FORMAT_ID_RE = re.compile(r'-(\d+)\.m4s\?')
     _WBI_KEY_CACHE_TIMEOUT = 30  # exact expire timeout is unclear, use 30s for one session
     _wbi_key_cache = {}
@@ -136,7 +141,8 @@ class BilibiliBaseIE(InfoExtractor):
             return self._wbi_key_cache['key']
 
         session_data = self._download_json(
-            'https://api.bilibili.com/x/web-interface/nav', video_id, note='Downloading wbi sign')
+            'https://api.bilibili.com/x/web-interface/nav', video_id,
+            note='Downloading wbi sign', headers=self._HEADERS)
 
         lookup = ''.join(traverse_obj(session_data, (
             'data', 'wbi_img', ('img_url', 'sub_url'),
@@ -177,7 +183,8 @@ class BilibiliBaseIE(InfoExtractor):
 
         return self._download_json(
             'https://api.bilibili.com/x/player/wbi/playurl', bvid,
-            query=self._sign_wbi(params, bvid), headers=headers, note=note)['data']
+            query=self._sign_wbi(params, bvid),
+            headers={**self._HEADERS, **(headers or {})}, note=note)['data']
 
     def json2srt(self, json_data):
         srt_data = ''
