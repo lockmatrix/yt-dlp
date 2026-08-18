@@ -142,9 +142,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     _SUBTITLE_FORMATS = ('json3', 'srv1', 'srv2', 'srv3', 'ttml', 'srt', 'vtt')
     _DEFAULT_CLIENTS = ('visionos', 'android_vr', 'web')
     _DEFAULT_JSLESS_CLIENTS = ('visionos', 'android_vr')
-    _DEFAULT_AUTHED_CLIENTS = ('tv_downgraded', 'web')
+    # `web_embedded` is a fallback for when the TVHTML5 clients return UNPLAYABLE
+    # ("The page needs to be reloaded"); see yt-dlp/yt-dlp#17389. Drop it once the
+    # TVHTML5 player JS variant is solvable again.
+    _DEFAULT_AUTHED_CLIENTS = ('tv_downgraded', 'web_embedded', 'web')
     # Premium does not require POT (except for subtitles)
-    _DEFAULT_PREMIUM_CLIENTS = ('tv_downgraded', 'web_creator', 'web')
+    _DEFAULT_PREMIUM_CLIENTS = ('tv_downgraded', 'web_creator', 'web_embedded', 'web')
     _WEBPAGE_CLIENTS = ('web', 'web_safari')
     _DEFAULT_WEBPAGE_CLIENT = 'web'
 
